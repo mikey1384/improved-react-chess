@@ -1,8 +1,8 @@
 import React from 'react';
 
 import '../index.css';
-import Board from './board.js';
-import FallenSoldierBlock from './fallen-soldier-block.js';
+import Board from './Board';
+import FallenPieces from './FallenPieces.js';
 import initialiseChessBoard from '../helpers/board-initialiser.js';
 
 export default class Game extends React.Component {
@@ -28,7 +28,6 @@ export default class Game extends React.Component {
           status:
             'Wrong selection. Choose player ' + this.state.player + ' pieces.'
         });
-        squares[i] ? delete squares[i].style.backgroundColor : null;
       } else {
         squares[i].style = {
           ...squares[i].style,
@@ -40,7 +39,6 @@ export default class Game extends React.Component {
         });
       }
     } else if (this.state.sourceSelection > -1) {
-      delete squares[this.state.sourceSelection].style.backgroundColor;
       if (squares[i] && squares[i].player === this.state.player) {
         this.setState({
           status: 'Wrong selection. Choose valid source and destination again.',
@@ -126,45 +124,14 @@ export default class Game extends React.Component {
 
             <div className="fallen-soldier-block">
               {
-                <FallenSoldierBlock
-                  whiteFallenSoldiers={this.state.whiteFallenSoldiers}
-                  blackFallenSoldiers={this.state.blackFallenSoldiers}
+                <FallenPieces
+                  whiteFallenPieces={this.state.whiteFallenSoldiers}
+                  blackFallenPieces={this.state.blackFallenSoldiers}
                 />
               }
             </div>
           </div>
         </div>
-
-        <div className="icons-attribution">
-          <div>
-            {' '}
-            <small>
-              {' '}
-              Chess Icons And Favicon (extracted) By en:User:Cburnett [
-              <a href="http://www.gnu.org/copyleft/fdl.html">GFDL</a>,{' '}
-              <a href="http://creativecommons.org/licenses/by-sa/3.0/">
-                CC-BY-SA-3.0
-              </a>
-              , <a href="http://opensource.org/licenses/bsd-license.php">BSD</a>{' '}
-              or <a href="http://www.gnu.org/licenses/gpl.html">GPL</a>],{' '}
-              <a href="https://commons.wikimedia.org/wiki/Category:SVG_chess_pieces">
-                via Wikimedia Commons
-              </a>{' '}
-            </small>
-          </div>
-        </div>
-        <ul>
-          <li>
-            <a href="https://github.com/TalhaAwan/react-chess" target="_blank">
-              Source Code
-            </a>{' '}
-          </li>
-          <li>
-            <a href="https://www.techighness.com/post/develop-two-player-chess-game-with-react-js/">
-              Blog Post
-            </a>
-          </li>
-        </ul>
       </div>
     );
   }
