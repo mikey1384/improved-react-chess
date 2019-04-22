@@ -1,138 +1,121 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 import '../index.css';
 import Board from './Board';
 import FallenPieces from './FallenPieces.js';
 import initialiseChessBoard from '../helpers/board-initialiser.js';
 
-export default class Game extends React.Component {
-  constructor() {
-    super();
-    this.state = {
-      squares: initialiseChessBoard(),
-      whiteFallenSoldiers: [],
-      blackFallenSoldiers: [],
-      player: 1,
-      sourceSelection: -1,
-      status: '',
-      turn: 'white'
-    };
-  }
+export default function Game() {
+  const [squares, setSquares] = useState(initialiseChessBoard());
+  const [whiteFallenPieces, setWhiteFallenPieces] = useState([]);
+  const [blackFallenPieces, setBlackFallenPieces] = useState([]);
+  const [player, setPlayer] = useState(1);
+  const [sourceSelection, setSourceSelection] = useState(-1);
+  const [status, setStatus] = useState('');
+  const [turn, setTurn] = useState('white');
 
-  handleClick(i) {
-    const squares = this.state.squares.slice();
+  return (
+    <div>
+      <div className="game">
+        <div className="game-board">
+          <Board squares={squares} onClick={handleClick} />
+        </div>
+        <div className="game-info">
+          <h3>Turn</h3>
+          <div id="player-turn-box" style={{ backgroundColor: turn }} />
+          <div className="game-status">{status}</div>
 
-    if (this.state.sourceSelection === -1) {
-      if (!squares[i] || squares[i].player !== this.state.player) {
-        this.setState({
-          status:
-            'Wrong selection. Choose player ' + this.state.player + ' pieces.'
-        });
+          <div className="fallen-soldier-block">
+            {
+              <FallenPieces
+                whiteFallenPieces={whiteFallenPieces}
+                blackFallenPieces={blackFallenPieces}
+              />
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  function handleClick(i) {
+    if (sourceSelection === -1) {
+      if (!squares[i] || squares[i].player !== player) {
+        setStatus('Wrong selection. Choose player ' + player + ' pieces.');
       } else {
-        squares[i].style = {
-          ...squares[i].style,
-          backgroundColor: 'RGB(111,143,114)'
-        }; // Emerald from http://omgchess.blogspot.com/2015/09/chess-board-color-schemes.html
-        this.setState({
-          status: 'Choose destination for the selected piece',
-          sourceSelection: i
-        });
+        setSquares(squares =>
+          squares.map((square, index) =>
+            index === i
+              ? {
+                  ...square,
+                  style: {
+                    ...square.style,
+                    backgroundColor: 'RGB(111,143,114)'
+                  }
+                }
+              : square
+          )
+        );
+        setStatus('Choose destination for the selected piece');
+        setSourceSelection(i);
       }
-    } else if (this.state.sourceSelection > -1) {
-      if (squares[i] && squares[i].player === this.state.player) {
-        this.setState({
-          status: 'Wrong selection. Choose valid source and destination again.',
-          sourceSelection: -1
-        });
+    } else if (sourceSelection > -1) {
+      if (squares[i] && squares[i].player === player) {
+        setStatus(
+          'Wrong selection. Choose valid source and destination again.'
+        );
+        setSourceSelection(-1);
       } else {
-        const squares = this.state.squares.slice();
-        const whiteFallenSoldiers = this.state.whiteFallenSoldiers.slice();
-        const blackFallenSoldiers = this.state.blackFallenSoldiers.slice();
-        const isDestEnemyOccupied = squares[i] ? true : false;
-        const isMovePossible = squares[
-          this.state.sourceSelection
-        ].isMovePossible(this.state.sourceSelection, i, isDestEnemyOccupied);
-        const srcToDestPath = squares[
-          this.state.sourceSelection
-        ].getSrcToDestPath(this.state.sourceSelection, i);
-        const isMoveLegal = this.isMoveLegal(srcToDestPath);
-
-        if (isMovePossible && isMoveLegal) {
+        const isDestEnemyOccupied = !!squares[i];
+        const newWhiteFallenPieces = [...whiteFallenPieces];
+        const newBlackFallenPieces = [...blackFallenPieces];
+        if (
+          squares[sourceSelection].isMovePossible(
+            sourceSelection,
+            i,
+            isDestEnemyOccupied
+          ) &&
+          isMoveLegal(
+            squares[sourceSelection].getSrcToDestPath(sourceSelection, i)
+          )
+        ) {
           if (squares[i] !== null) {
             if (squares[i].player === 1) {
-              whiteFallenSoldiers.push(squares[i]);
+              newWhiteFallenPieces.push(squares[i]);
             } else {
-              blackFallenSoldiers.push(squares[i]);
+              newBlackFallenPieces.push(squares[i]);
             }
           }
-          squares[i] = squares[this.state.sourceSelection];
-          squares[this.state.sourceSelection] = null;
-          let player = this.state.player === 1 ? 2 : 1;
-          let turn = this.state.turn === 'white' ? 'black' : 'white';
-          this.setState({
-            sourceSelection: -1,
-            squares: squares,
-            whiteFallenSoldiers: whiteFallenSoldiers,
-            blackFallenSoldiers: blackFallenSoldiers,
-            player: player,
-            status: '',
-            turn: turn
-          });
+          setSourceSelection(-1);
+          setSquares(squares =>
+            squares.map((square, index) => {
+              if (index === i) return squares[sourceSelection];
+              if (index === sourceSelection) return null;
+              return square;
+            })
+          );
+          setWhiteFallenPieces(newWhiteFallenPieces);
+          setBlackFallenPieces(newBlackFallenPieces);
+          setPlayer(player === 1 ? 2 : 1);
+          setStatus('');
+          setTurn(turn === 'white' ? 'black' : 'white');
         } else {
-          this.setState({
-            status:
-              'Wrong selection. Choose valid source and destination again.',
-            sourceSelection: -1
-          });
+          setStatus(
+            'Wrong selection. Choose valid source and destination again.'
+          );
+          setSourceSelection(-1);
         }
       }
     }
   }
 
-  /**
-   * Check all path indices are null. For one steps move of pawn/others or jumping moves of knight array is empty, so  move is legal.
-   * @param  {[type]}  srcToDestPath [array of board indices comprising path between src and dest ]
-   * @return {Boolean}
-   */
-  isMoveLegal(srcToDestPath) {
+  function isMoveLegal(srcToDestPath) {
     let isLegal = true;
     for (let i = 0; i < srcToDestPath.length; i++) {
-      if (this.state.squares[srcToDestPath[i]] !== null) {
+      if (squares[srcToDestPath[i]] !== null) {
         isLegal = false;
       }
     }
     return isLegal;
-  }
-
-  render() {
-    return (
-      <div>
-        <div className="game">
-          <div className="game-board">
-            <Board
-              squares={this.state.squares}
-              onClick={i => this.handleClick(i)}
-            />
-          </div>
-          <div className="game-info">
-            <h3>Turn</h3>
-            <div
-              id="player-turn-box"
-              style={{ backgroundColor: this.state.turn }}
-            />
-            <div className="game-status">{this.state.status}</div>
-
-            <div className="fallen-soldier-block">
-              {
-                <FallenPieces
-                  whiteFallenPieces={this.state.whiteFallenSoldiers}
-                  blackFallenPieces={this.state.blackFallenSoldiers}
-                />
-              }
-            </div>
-          </div>
-        </div>
-      </div>
-    );
   }
 }

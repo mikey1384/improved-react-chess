@@ -1,6 +1,12 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import Square from './Square';
 import { css } from 'emotion';
+
+Board.propTypes = {
+  onClick: PropTypes.func.isRequired,
+  squares: PropTypes.array.isRequired
+};
 
 export default function Board({ onClick, squares }) {
   const board = [];
@@ -15,6 +21,7 @@ export default function Board({ onClick, squares }) {
     }
     board.push(
       <div
+        key={i}
         className={css`
           &:after {
             clear: both;
@@ -33,6 +40,7 @@ export default function Board({ onClick, squares }) {
   function renderSquare(i, squareShade) {
     return (
       <Square
+        key={i}
         style={squares[i] ? squares[i].style : null}
         shade={squareShade}
         onClick={() => onClick(i)}
