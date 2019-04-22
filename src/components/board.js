@@ -1,7 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Square from './Square';
-import { css } from 'emotion';
 
 Board.propTypes = {
   onClick: PropTypes.func.isRequired,
@@ -15,24 +14,11 @@ export default function Board({ onClick, squares }) {
     for (let j = 0; j < 8; j++) {
       const squareShade =
         (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
-          ? 'light-square'
-          : 'dark-square';
+          ? 'light'
+          : 'dark';
       squareRows.push(renderSquare(i * 8 + j, squareShade));
     }
-    board.push(
-      <div
-        key={i}
-        className={css`
-          &:after {
-            clear: both;
-            content: '';
-            display: table;
-          }
-        `}
-      >
-        {squareRows}
-      </div>
-    );
+    board.push(<div key={i}>{squareRows}</div>);
   }
 
   return <div>{board}</div>;
@@ -41,7 +27,7 @@ export default function Board({ onClick, squares }) {
     return (
       <Square
         key={i}
-        style={squares[i] ? squares[i].style : null}
+        style={squares[i] ? { ...squares[i].style, cursor: 'pointer' } : null}
         shade={squareShade}
         onClick={() => onClick(i)}
       />

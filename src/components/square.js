@@ -1,6 +1,5 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import '../index.css';
 
 Square.propTypes = {
   style: PropTypes.object,
@@ -10,6 +9,6 @@ Square.propTypes = {
 
 export default function Square({ shade, onClick, style }) {
   return (
-    <button className={'square ' + shade} onClick={onClick} style={style} />
+    <button style={style} className={'square ' + shade} onClick={onClick} />
   );
 }

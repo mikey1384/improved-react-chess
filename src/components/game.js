@@ -1,6 +1,4 @@
 import React, { useState } from 'react';
-
-import '../index.css';
 import Board from './Board';
 import FallenPieces from './FallenPieces.js';
 import initialiseChessBoard from '../helpers/board-initialiser.js';
@@ -16,23 +14,33 @@ export default function Game() {
 
   return (
     <div>
-      <div className="game">
-        <div className="game-board">
-          <Board squares={squares} onClick={handleClick} />
-        </div>
-        <div className="game-info">
-          <h3>Turn</h3>
-          <div id="player-turn-box" style={{ backgroundColor: turn }} />
-          <div className="game-status">{status}</div>
-
-          <div className="fallen-soldier-block">
-            {
-              <FallenPieces
-                whiteFallenPieces={whiteFallenPieces}
-                blackFallenPieces={blackFallenPieces}
-              />
-            }
-          </div>
+      <div style={{ display: 'flex' }}>
+        <Board squares={squares} onClick={handleClick} />
+        <div style={{ marginLeft: '1rem' }}>
+          <p
+            style={{
+              fontSize: '1rem',
+              margin: 0,
+              fontWeight: 'bold',
+              lineHeight: 1.5
+            }}
+          >
+            Turn
+          </p>
+          <div
+            style={{
+              width: '2rem',
+              height: '2rem',
+              border: '1px solid #000',
+              marginBottom: '1rem',
+              backgroundColor: turn
+            }}
+          />
+          <div style={{ minHeight: '4rem' }}>{status}</div>
+          <FallenPieces
+            whiteFallenPieces={whiteFallenPieces}
+            blackFallenPieces={blackFallenPieces}
+          />
         </div>
       </div>
     </div>
@@ -61,10 +69,31 @@ export default function Game() {
       }
     } else if (sourceSelection > -1) {
       if (squares[i] && squares[i].player === player) {
-        setStatus(
-          'Wrong selection. Choose valid source and destination again.'
+        setSourceSelection(i);
+        setStatus('Choose destination for the selected piece');
+        setSquares(squares =>
+          squares.map((square, index) => {
+            if (index !== i && index === sourceSelection) {
+              return {
+                ...square,
+                style: {
+                  ...square.style,
+                  backgroundColor: null
+                }
+              };
+            }
+            if (index === i) {
+              return {
+                ...square,
+                style: {
+                  ...square.style,
+                  backgroundColor: 'RGB(111,143,114)'
+                }
+              };
+            }
+            return square;
+          })
         );
-        setSourceSelection(-1);
       } else {
         const isDestEnemyOccupied = !!squares[i];
         const newWhiteFallenPieces = [...whiteFallenPieces];
@@ -89,7 +118,15 @@ export default function Game() {
           setSourceSelection(-1);
           setSquares(squares =>
             squares.map((square, index) => {
-              if (index === i) return squares[sourceSelection];
+              if (index === i) {
+                return {
+                  ...squares[sourceSelection],
+                  style: {
+                    ...squares[sourceSelection].style,
+                    backgroundColor: null
+                  }
+                };
+              }
               if (index === sourceSelection) return null;
               return square;
             })
@@ -103,7 +140,6 @@ export default function Game() {
           setStatus(
             'Wrong selection. Choose valid source and destination again.'
           );
-          setSourceSelection(-1);
         }
       }
     }

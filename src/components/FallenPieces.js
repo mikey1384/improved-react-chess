@@ -9,15 +9,29 @@ FallenPieces.propTypes = {
 
 export default function FallenPieces({ whiteFallenPieces, blackFallenPieces }) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column' }}>
-      <div>
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '6rem'
+      }}
+    >
+      <div style={{ minHeight: '3rem' }}>
         {whiteFallenPieces.map((piece, index) => (
-          <Square key={index} piece={piece} style={piece.style} />
+          <Square
+            key={index}
+            piece={piece}
+            style={{ ...piece.style, backgroundColor: null }}
+          />
         ))}
       </div>
-      <div>
+      <div style={{ minHeight: '3rem' }}>
         {blackFallenPieces.map((piece, index) => (
-          <Square key={index} piece={piece} style={piece.style} />
+          <Square
+            key={index}
+            piece={piece}
+            style={{ ...piece.style, backgroundColor: null }}
+          />
         ))}
       </div>
     </div>
