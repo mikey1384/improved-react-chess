@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Square from './Square';
+import getPiece from '../helpers/piece';
 
 Board.propTypes = {
   onClick: PropTypes.func.isRequired,
@@ -20,11 +21,11 @@ export default function Board({ onClick, squares }) {
       squareRows.push(
         <Square
           key={index}
-          className={(squares[index] || {}).className}
+          className={squares[index].className}
           style={
-            (squares[index] || {}).player
-              ? { ...squares[index].style, cursor: 'pointer' }
-              : (squares[index] || {}).style || null
+            squares[index].player
+              ? { ...getPiece(squares[index]).style, cursor: 'pointer' }
+              : getPiece(squares[index]).style
           }
           shade={squareShade}
           onClick={() => onClick(index)}

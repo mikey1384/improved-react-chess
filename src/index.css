@@ -35,10 +35,18 @@ body {
   background: RGB(104, 136, 107);
 }
 
+.dark.check {
+  background: red;
+}
+
 .light {
   background-color: RGB(234, 240, 206);
 }
 
 .light.highlighted {
   background: RGB(111, 143, 114);
+}
+
+.light.check {
+  background: red;
 }
