@@ -53,13 +53,10 @@ export default function Game() {
       } else {
         setSquares(squares =>
           squares.map((square, index) =>
-            index === i
+            index === i || isPossibleAndLegal({ src: i, dest: index })
               ? {
                   ...square,
-                  style: {
-                    ...square.style,
-                    backgroundColor: 'RGB(111,143,114)'
-                  }
+                  className: 'highlighted'
                 }
               : square
           )
@@ -67,7 +64,7 @@ export default function Game() {
         setStatus('Choose destination for the selected piece');
         setSourceSelection(i);
       }
-    } else if (sourceSelection > -1) {
+    } else {
       if (squares[i] && squares[i].player === player) {
         setSourceSelection(i);
         setStatus('Choose destination for the selected piece');
@@ -76,39 +73,28 @@ export default function Game() {
             if (index !== i && index === sourceSelection) {
               return {
                 ...square,
-                style: {
-                  ...square.style,
-                  backgroundColor: null
-                }
+                className: ''
               };
             }
-            if (index === i) {
+            if (index === i || isPossibleAndLegal({ src: i, dest: index })) {
               return {
                 ...square,
-                style: {
-                  ...square.style,
-                  backgroundColor: 'RGB(111,143,114)'
-                }
+                className: 'highlighted'
               };
             }
-            return square;
+            return square
+              ? {
+                  ...square,
+                  className: ''
+                }
+              : null;
           })
         );
       } else {
-        const isDestEnemyOccupied = !!squares[i];
         const newWhiteFallenPieces = [...whiteFallenPieces];
         const newBlackFallenPieces = [...blackFallenPieces];
-        if (
-          squares[sourceSelection].isMovePossible(
-            sourceSelection,
-            i,
-            isDestEnemyOccupied
-          ) &&
-          isMoveLegal(
-            squares[sourceSelection].getSrcToDestPath(sourceSelection, i)
-          )
-        ) {
-          if (squares[i] !== null) {
+        if (isPossibleAndLegal({ src: sourceSelection, dest: i })) {
+          if (!!squares[i] && !!squares[i].player) {
             if (squares[i].player === 1) {
               newWhiteFallenPieces.push(squares[i]);
             } else {
@@ -121,14 +107,16 @@ export default function Game() {
               if (index === i) {
                 return {
                   ...squares[sourceSelection],
-                  style: {
-                    ...squares[sourceSelection].style,
-                    backgroundColor: null
-                  }
+                  className: ''
                 };
               }
               if (index === sourceSelection) return null;
-              return square;
+              return square
+                ? {
+                    ...square,
+                    className: ''
+                  }
+                : null;
             })
           );
           setWhiteFallenPieces(newWhiteFallenPieces);
@@ -146,12 +134,23 @@ export default function Game() {
   }
 
   function isMoveLegal(srcToDestPath) {
-    let isLegal = true;
     for (let i = 0; i < srcToDestPath.length; i++) {
-      if (squares[srcToDestPath[i]] !== null) {
-        isLegal = false;
+      if ((squares[srcToDestPath[i]] || {}).player) {
+        return false;
       }
     }
-    return isLegal;
+    return true;
+  }
+
+  function isPossibleAndLegal({ src, dest }) {
+    return (
+      squares[src].isMovePossible(
+        src,
+        dest,
+        !!squares[dest] && !!squares[dest].player
+      ) &&
+      isMoveLegal(squares[src].getSrcToDestPath(src, dest)) &&
+      (squares[dest] || {}).player !== player
+    );
   }
 }

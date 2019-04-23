@@ -15,8 +15,9 @@ export default function Pawn(player) {
     isMovePossible(src, dest, isDestEnemyOccupied) {
       if (player === 1) {
         if (
-          (dest === src - 8 && !isDestEnemyOccupied) ||
-          (dest === src - 16 && initialPositions[1].indexOf(src) !== -1)
+          (dest === src - 8 ||
+            (dest === src - 16 && initialPositions[1].indexOf(src) !== -1)) &&
+          !isDestEnemyOccupied
         ) {
           return true;
         } else if (
@@ -25,10 +26,13 @@ export default function Pawn(player) {
         ) {
           return true;
         }
-      } else if (player === 2) {
+      }
+
+      if (player === 2) {
         if (
-          (dest === src + 8 && !isDestEnemyOccupied) ||
-          (dest === src + 16 && initialPositions[2].indexOf(src) !== -1)
+          (dest === src + 8 ||
+            (dest === src + 16 && initialPositions[2].indexOf(src) !== -1)) &&
+          !isDestEnemyOccupied
         ) {
           return true;
         } else if (
@@ -38,15 +42,20 @@ export default function Pawn(player) {
           return true;
         }
       }
+
       return false;
     },
     getSrcToDestPath(src, dest) {
-      if (dest === src - 16) {
-        return [src - 8];
-      } else if (dest === src + 16) {
-        return [src + 8];
+      const srcRow = Math.floor(src / 8);
+      const destRow = Math.floor(dest / 8);
+      const result = [];
+      if (srcRow + 2 === destRow) {
+        result.push(src + 8);
       }
-      return [];
+      if (srcRow - 2 === destRow) {
+        result.push(src - 8);
+      }
+      return result;
     }
   };
 }

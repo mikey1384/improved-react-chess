@@ -16,23 +16,25 @@ export default function Board({ onClick, squares }) {
         (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
           ? 'light'
           : 'dark';
-      squareRows.push(renderSquare(i * 8 + j, squareShade));
+      const index = i * 8 + j;
+      squareRows.push(
+        <Square
+          key={index}
+          className={(squares[index] || {}).className}
+          style={
+            (squares[index] || {}).player
+              ? { ...squares[index].style, cursor: 'pointer' }
+              : (squares[index] || {}).style || null
+          }
+          shade={squareShade}
+          onClick={() => onClick(index)}
+        />
+      );
     }
     board.push(<div key={i}>{squareRows}</div>);
   }
 
   return <div>{board}</div>;
-
-  function renderSquare(i, squareShade) {
-    return (
-      <Square
-        key={i}
-        style={squares[i] ? { ...squares[i].style, cursor: 'pointer' } : null}
-        shade={squareShade}
-        onClick={() => onClick(i)}
-      />
-    );
-  }
 }
 
 function isEven(num) {

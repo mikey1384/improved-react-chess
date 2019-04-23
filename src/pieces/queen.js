@@ -9,14 +9,15 @@ export default function Queen(player) {
       }')`
     },
     isMovePossible(src, dest) {
-      let mod = src % 8;
-      let diff = 8 - mod;
+      const srcRow = Math.floor(src / 8);
+      const srcColumn = src % 8;
+      const destRow = Math.floor(dest / 8);
+      const destColumn = dest % 8;
 
       return (
-        Math.abs(src - dest) % 9 === 0 ||
-        Math.abs(src - dest) % 7 === 0 ||
-        (Math.abs(src - dest) % 8 === 0 ||
-          (dest >= src - mod && dest < src + diff))
+        Math.abs(srcRow - destRow) === Math.abs(srcColumn - destColumn) ||
+        srcRow === destRow ||
+        srcColumn === destColumn
       );
     },
     getSrcToDestPath(src, dest) {

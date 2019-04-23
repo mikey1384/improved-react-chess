@@ -9,7 +9,11 @@ export default function Bishop(player) {
       }')`
     },
     isMovePossible(src, dest) {
-      return Math.abs(src - dest) % 9 === 0 || Math.abs(src - dest) % 7 === 0;
+      const srcRow = Math.floor(src / 8);
+      const srcColumn = src % 8;
+      const destRow = Math.floor(dest / 8);
+      const destColumn = dest % 8;
+      return Math.abs(srcRow - destRow) === Math.abs(srcColumn - destColumn);
     },
     getSrcToDestPath(src, dest) {
       let path = [];

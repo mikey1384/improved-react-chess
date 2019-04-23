@@ -9,15 +9,19 @@ export default function Knight(player) {
       }')`
     },
     isMovePossible(src, dest) {
+      const srcRow = Math.floor(src / 8);
+      const srcColumn = src % 8;
+      const destRow = Math.floor(dest / 8);
+      const destColumn = dest % 8;
       return (
-        src - 17 === dest ||
-        src - 10 === dest ||
-        src + 6 === dest ||
-        src + 15 === dest ||
-        src - 15 === dest ||
-        src - 6 === dest ||
-        src + 10 === dest ||
-        src + 17 === dest
+        (srcRow + 2 === destRow && srcColumn - 1 === destColumn) ||
+        (srcRow + 2 === destRow && srcColumn + 1 === destColumn) ||
+        (srcRow + 1 === destRow && srcColumn - 2 === destColumn) ||
+        (srcRow + 1 === destRow && srcColumn + 2 === destColumn) ||
+        (srcRow - 2 === destRow && srcColumn - 1 === destColumn) ||
+        (srcRow - 2 === destRow && srcColumn + 1 === destColumn) ||
+        (srcRow - 1 === destRow && srcColumn - 2 === destColumn) ||
+        (srcRow - 1 === destRow && srcColumn + 2 === destColumn)
       );
     },
     getSrcToDestPath() {

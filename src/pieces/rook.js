@@ -9,18 +9,17 @@ export default function Rook(player) {
       }')`
     },
     isMovePossible(src, dest) {
-      let mod = src % 8;
-      let diff = 8 - mod;
-      return (
-        Math.abs(src - dest) % 8 === 0 ||
-        (dest >= src - mod && dest < src + diff)
-      );
+      const srcRow = Math.floor(src / 8);
+      const srcColumn = src % 8;
+      const destRow = Math.floor(dest / 8);
+      const destColumn = dest % 8;
+      return srcRow === destRow || srcColumn === destColumn;
     },
     getSrcToDestPath(src, dest) {
       let path = [];
-        let pathStart;
-        let pathEnd;
-        let incrementBy;
+      let pathStart;
+      let pathEnd;
+      let incrementBy;
       if (src > dest) {
         pathStart = dest;
         pathEnd = src;

@@ -23,10 +23,22 @@ body {
   outline: none;
 }
 
+.square.highlighted {
+  cursor: pointer;
+}
+
 .dark {
   background-color: RGB(187, 190, 100);
 }
 
+.dark.highlighted {
+  background: RGB(104, 136, 107);
+}
+
 .light {
   background-color: RGB(234, 240, 206);
+}
+
+.light.highlighted {
+  background: RGB(111, 143, 114);
 }
