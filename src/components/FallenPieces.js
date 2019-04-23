@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Square from './Square';
+import getPiece from '../helpers/piece';
 
 FallenPieces.propTypes = {
   whiteFallenPieces: PropTypes.array.isRequired,
@@ -20,8 +21,8 @@ export default function FallenPieces({ whiteFallenPieces, blackFallenPieces }) {
         {whiteFallenPieces.map((piece, index) => (
           <Square
             key={index}
-            piece={piece}
-            style={{ ...piece.style, backgroundColor: null }}
+            piece={getPiece(piece)}
+            style={{ ...getPiece(piece).style, backgroundColor: null }}
           />
         ))}
       </div>
@@ -29,8 +30,8 @@ export default function FallenPieces({ whiteFallenPieces, blackFallenPieces }) {
         {blackFallenPieces.map((piece, index) => (
           <Square
             key={index}
-            piece={piece}
-            style={{ ...piece.style, backgroundColor: null }}
+            piece={getPiece(piece)}
+            style={{ ...getPiece(piece).style, backgroundColor: null }}
           />
         ))}
       </div>

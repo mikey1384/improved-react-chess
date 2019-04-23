@@ -13,9 +13,6 @@ export default function Game() {
   const [status, setStatus] = useState('');
   const [turn, setTurn] = useState('white');
 
-  const livePieces = squares.filter(square => square.player);
-  console.log(livePieces);
-
   return (
     <div>
       <div style={{ display: 'flex' }}>
@@ -60,7 +57,7 @@ export default function Game() {
             index === i || isPossibleAndLegal({ src: i, dest: index })
               ? {
                   ...square,
-                  className: 'highlighted'
+                  state: 'highlighted'
                 }
               : square
           )
@@ -77,18 +74,18 @@ export default function Game() {
             if (index !== i && index === sourceSelection) {
               return {
                 ...square,
-                className: ''
+                state: ''
               };
             }
             if (index === i || isPossibleAndLegal({ src: i, dest: index })) {
               return {
                 ...square,
-                className: 'highlighted'
+                state: 'highlighted'
               };
             }
             return {
               ...square,
-              className: ''
+              state: ''
             };
           })
         );
@@ -109,19 +106,19 @@ export default function Game() {
               if (isCheck({ curr: sourceSelection, src: i, dest: index })) {
                 return {
                   ...square,
-                  className: 'check'
+                  state: 'check'
                 };
               }
               if (index === i) {
                 return {
                   ...squares[sourceSelection],
-                  className: ''
+                  state: ''
                 };
               }
               if (index === sourceSelection) return {};
               return {
                 ...square,
-                className: ''
+                state: ''
               };
             })
           );
@@ -161,16 +158,14 @@ export default function Game() {
   }
 
   function isCheck({ curr, src, dest }) {
-    if (!squares[dest].player) return false;
+    if (
+      !squares[dest].player ||
+      squares[dest].type !== 'king' ||
+      squares[dest].player === player
+    ) { return false; }
     return (
-      squares[dest].type === 'king' &&
-      getPiece(squares[curr]).isMovePossible(
-        src,
-        dest,
-        !!squares[dest].player
-      ) &&
-      isMoveLegal(getPiece(squares[curr]).getSrcToDestPath(src, dest), curr) &&
-      squares[dest].player !== player
+      getPiece(squares[curr]).isMovePossible(src, dest, true) &&
+      isMoveLegal(getPiece(squares[curr]).getSrcToDestPath(src, dest), curr)
     );
   }
 }
