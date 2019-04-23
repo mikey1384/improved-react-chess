@@ -136,9 +136,12 @@ export default function Game() {
     }
   }
 
-  function isMoveLegal(srcToDestPath, curr) {
+  function isMoveLegal(srcToDestPath, ignore, include) {
     for (let i = 0; i < srcToDestPath.length; i++) {
-      if (srcToDestPath[i] !== curr && squares[srcToDestPath[i]].player) {
+      if (
+        srcToDestPath[i] === include ||
+        (srcToDestPath[i] !== ignore && squares[srcToDestPath[i]].player)
+      ) {
         return false;
       }
     }
@@ -146,26 +149,43 @@ export default function Game() {
   }
 
   function isPossibleAndLegal({ src, dest }) {
+    if (squares[dest].player === player) {
+      return false;
+    }
     return (
       getPiece(squares[src]).isMovePossible(
         src,
         dest,
         !!squares[dest].player
-      ) &&
-      isMoveLegal(getPiece(squares[src]).getSrcToDestPath(src, dest)) &&
-      squares[dest].player !== player
+      ) && isMoveLegal(getPiece(squares[src]).getSrcToDestPath(src, dest))
     );
   }
 
   function isCheck({ curr, src, dest }) {
     if (
       !squares[dest].player ||
-      squares[dest].type !== 'king' ||
-      squares[dest].player === player
-    ) { return false; }
-    return (
-      getPiece(squares[curr]).isMovePossible(src, dest, true) &&
-      isMoveLegal(getPiece(squares[curr]).getSrcToDestPath(src, dest), curr)
-    );
+      squares[dest].player === player ||
+      squares[dest].type !== 'king'
+    ) {
+      return false;
+    }
+    for (let i = 0; i < squares.length; i++) {
+      if (!squares[i].player || squares[i].player !== player) {
+        continue;
+      }
+      const moverIndex = i === curr ? curr : i;
+      const index = i === curr ? src : i;
+      if (
+        getPiece(squares[moverIndex]).isMovePossible(index, dest, true) &&
+        isMoveLegal(
+          getPiece(squares[moverIndex]).getSrcToDestPath(index, dest),
+          curr,
+          src
+        )
+      ) {
+        return true;
+      }
+    }
+    return false;
   }
 }
