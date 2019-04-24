@@ -1,4 +1,4 @@
-const initialPositions = {
+const initialPawnPositions = {
   1: [48, 49, 50, 51, 52, 53, 54, 55],
   2: [8, 9, 10, 11, 12, 13, 14, 15]
 };
@@ -20,7 +20,7 @@ export default function getPiece({ type, player }) {
             if (
               (dest === src - 8 ||
                 (dest === src - 16 &&
-                  initialPositions[1].indexOf(src) !== -1)) &&
+                  initialPawnPositions[1].indexOf(src) !== -1)) &&
               !isDestEnemyOccupied
             ) {
               return true;
@@ -36,7 +36,7 @@ export default function getPiece({ type, player }) {
             if (
               (dest === src + 8 ||
                 (dest === src + 16 &&
-                  initialPositions[2].indexOf(src) !== -1)) &&
+                  initialPawnPositions[2].indexOf(src) !== -1)) &&
               !isDestEnemyOccupied
             ) {
               return true;
