@@ -9,7 +9,7 @@ export default function Game() {
   const [whiteFallenPieces, setWhiteFallenPieces] = useState([]);
   const [blackFallenPieces, setBlackFallenPieces] = useState([]);
   const [player, setPlayer] = useState(1);
-  const [sourceSelection, setSourceSelection] = useState(-1);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
   const [status, setStatus] = useState('');
   const [turn, setTurn] = useState('white');
 
@@ -48,51 +48,57 @@ export default function Game() {
   );
 
   function handleClick(i) {
-    if (sourceSelection === -1) {
+    if (selectedIndex === -1) {
       if (!squares[i] || squares[i].player !== player) {
-        setStatus('Wrong selection. Choose player ' + player + ' pieces.');
-      } else {
-        setSquares(squares =>
-          squares.map((square, index) =>
-            index === i || isPossibleAndLegal({ src: i, dest: index })
-              ? {
-                  ...square,
-                  state: 'highlighted'
-                }
-              : square
-          )
+        return setStatus(
+          'Wrong selection. Choose player ' + player + ' pieces.'
         );
-        setStatus('Choose destination for the selected piece');
-        setSourceSelection(i);
       }
+      setSquares(squares =>
+        squares.map((square, index) =>
+          index === i || isPossibleAndLegal({ src: i, dest: index })
+            ? {
+                ...square,
+                state: square.state === 'check' ? 'check' : 'highlighted'
+              }
+            : square
+        )
+      );
+      setStatus('Choose destination for the selected piece');
+      setSelectedIndex(i);
     } else {
       if (squares[i] && squares[i].player === player) {
-        setSourceSelection(i);
+        setSelectedIndex(i);
         setStatus('Choose destination for the selected piece');
         setSquares(squares =>
           squares.map((square, index) => {
-            if (index !== i && index === sourceSelection) {
+            if (index !== i && index === selectedIndex) {
               return {
                 ...square,
-                state: ''
+                state: square.state === 'check' ? 'check' : ''
               };
             }
             if (index === i || isPossibleAndLegal({ src: i, dest: index })) {
               return {
                 ...square,
-                state: 'highlighted'
+                state: square.state === 'check' ? 'check' : 'highlighted'
               };
             }
             return {
               ...square,
-              state: ''
+              state: square.state === 'check' ? 'check' : ''
             };
           })
         );
       } else {
         const newWhiteFallenPieces = [...whiteFallenPieces];
         const newBlackFallenPieces = [...blackFallenPieces];
-        if (isPossibleAndLegal({ src: sourceSelection, dest: i })) {
+        if (isPossibleAndLegal({ src: selectedIndex, dest: i })) {
+          if (willResultInCheck({ src: selectedIndex, dest: i })) {
+            return setStatus(
+              'Your King will be captured if you make that move.'
+            );
+          }
           if (squares[i].player) {
             if (squares[i].player === 1) {
               newWhiteFallenPieces.push(squares[i]);
@@ -100,31 +106,34 @@ export default function Game() {
               newBlackFallenPieces.push(squares[i]);
             }
           }
-          setSourceSelection(-1);
-          setSquares(squares =>
-            squares.map((square, index) => {
-              if (isCheck({ curr: sourceSelection, src: i, dest: index })) {
-                return {
-                  ...square,
-                  state: 'check'
-                };
-              }
-              if (index === i) {
-                return {
-                  ...squares[sourceSelection],
-                  state: ''
-                };
-              }
-              if (index === sourceSelection) return {};
+          setSelectedIndex(-1);
+          const newSquares = squares.map((square, index) => {
+            if (index === i) {
               return {
-                ...square,
+                ...squares[selectedIndex],
                 state: ''
               };
-            })
-          );
+            }
+            if (index === selectedIndex) return {};
+            return {
+              ...square,
+              state: ''
+            };
+          });
+          const theirKingIndex = getKingIndex({
+            player: getOpponentPlayerId(player),
+            squares: newSquares
+          });
+          if (isCheck({ squares: newSquares, kingIndex: theirKingIndex })) {
+            newSquares[theirKingIndex] = {
+              ...newSquares[theirKingIndex],
+              state: 'check'
+            };
+          }
+          setSquares(newSquares);
           setWhiteFallenPieces(newWhiteFallenPieces);
           setBlackFallenPieces(newBlackFallenPieces);
-          setPlayer(player === 1 ? 2 : 1);
+          setPlayer(getOpponentPlayerId(player));
           setStatus('');
           setTurn(turn === 'white' ? 'black' : 'white');
         } else {
@@ -136,7 +145,22 @@ export default function Game() {
     }
   }
 
-  function isMoveLegal(srcToDestPath, ignore, include) {
+  function getKingIndex({ player, squares }) {
+    let kingIndex = -1;
+    for (let i = 0; i < squares.length; i++) {
+      if (squares[i].type === 'king' && squares[i].player === player) {
+        kingIndex = i;
+        break;
+      }
+    }
+    return kingIndex;
+  }
+
+  function getOpponentPlayerId(player) {
+    return player === 1 ? 2 : 1;
+  }
+
+  function isMoveLegal({ srcToDestPath, ignore, include, squares }) {
     for (let i = 0; i < srcToDestPath.length; i++) {
       if (
         srcToDestPath[i] === include ||
@@ -157,31 +181,68 @@ export default function Game() {
         src,
         dest,
         !!squares[dest].player
-      ) && isMoveLegal(getPiece(squares[src]).getSrcToDestPath(src, dest))
+      ) &&
+      isMoveLegal({
+        srcToDestPath: getPiece(squares[src]).getSrcToDestPath(src, dest),
+        squares
+      })
     );
   }
 
-  function isCheck({ curr, src, dest }) {
-    if (
-      !squares[dest].player ||
-      squares[dest].player === player ||
-      squares[dest].type !== 'king'
-    ) {
-      return false;
-    }
+  function isCheck({ squares, kingIndex }) {
     for (let i = 0; i < squares.length; i++) {
       if (!squares[i].player || squares[i].player !== player) {
         continue;
       }
-      const moverIndex = i === curr ? curr : i;
-      const index = i === curr ? src : i;
       if (
-        getPiece(squares[moverIndex]).isMovePossible(index, dest, true) &&
-        isMoveLegal(
-          getPiece(squares[moverIndex]).getSrcToDestPath(index, dest),
-          curr,
-          src
-        )
+        getPiece(squares[i]).isMovePossible(i, kingIndex, true) &&
+        isMoveLegal({
+          srcToDestPath: getPiece(squares[i]).getSrcToDestPath(i, kingIndex),
+          squares
+        })
+      ) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function willResultInCheck({ src, dest }) {
+    let myKingIndex = -1;
+    const newSquares = squares.map((square, index) => {
+      if (index === dest) {
+        return {
+          ...squares[src],
+          state: ''
+        };
+      }
+      if (index === src) return {};
+      return {
+        ...square,
+        state: ''
+      };
+    });
+
+    for (let i = 0; i < newSquares.length; i++) {
+      if (newSquares[i].type === 'king' && newSquares[i].player === player) {
+        myKingIndex = i;
+        break;
+      }
+    }
+
+    for (let i = 0; i < newSquares.length; i++) {
+      if (!newSquares[i].player || newSquares[i].player === player) {
+        continue;
+      }
+      if (
+        getPiece(newSquares[i]).isMovePossible(i, myKingIndex, true) &&
+        isMoveLegal({
+          srcToDestPath: getPiece(newSquares[i]).getSrcToDestPath(
+            i,
+            myKingIndex
+          ),
+          squares: newSquares
+        })
       ) {
         return true;
       }
