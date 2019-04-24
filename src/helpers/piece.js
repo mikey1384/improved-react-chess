@@ -36,7 +36,6 @@ export default function getPiece({ type, player }) {
               return true;
             }
           }
-
           if (player === 2) {
             if (
               (dest === src + 8 ||
@@ -70,6 +69,7 @@ export default function getPiece({ type, player }) {
           return result;
         }
       };
+
     case 'bishop':
       return {
         style: {
@@ -114,6 +114,7 @@ export default function getPiece({ type, player }) {
           return path;
         }
       };
+
     case 'knight':
       return {
         style: {
@@ -143,6 +144,7 @@ export default function getPiece({ type, player }) {
           return [];
         }
       };
+
     case 'rook':
       return {
         style: {
@@ -185,6 +187,7 @@ export default function getPiece({ type, player }) {
           return path;
         }
       };
+
     case 'queen':
       return {
         style: {
@@ -237,6 +240,7 @@ export default function getPiece({ type, player }) {
           return path;
         }
       };
+
     case 'king':
       return {
         style: {
@@ -264,6 +268,7 @@ export default function getPiece({ type, player }) {
           return [];
         }
       };
+
     default:
       return {};
   }

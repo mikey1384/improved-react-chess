@@ -88,10 +88,24 @@ export default function Game() {
         const newWhiteFallenPieces = [...whiteFallenPieces];
         const newBlackFallenPieces = [...blackFallenPieces];
         if (isPossibleAndLegal({ src: selectedIndex, dest: i })) {
-          if (willResultInCheck({ src: selectedIndex, dest: i })) {
-            return setStatus(
-              'Your King will be captured if you make that move.'
+          const potentialCapturer = kingWillBeCapturedBy({
+            src: selectedIndex,
+            dest: i
+          });
+          if (potentialCapturer !== -1) {
+            setSquares(squares =>
+              squares.map((square, index) => {
+                if (index === potentialCapturer) {
+                  return {
+                    ...square,
+                    state: 'danger'
+                  };
+                }
+                return square;
+              })
             );
+            setStatus('Your King will be captured if you make that move.');
+            return;
           }
           if (squares[i].player) {
             if (squares[i].player === 1) {
@@ -118,7 +132,13 @@ export default function Game() {
             player: getOpponentPlayerId(player),
             squares: newSquares
           });
-          if (isCheck({ squares: newSquares, kingIndex: theirKingIndex })) {
+          if (
+            checkerPos({
+              squares: newSquares,
+              kingIndex: theirKingIndex,
+              player
+            }) !== -1
+          ) {
             newSquares[theirKingIndex] = {
               ...newSquares[theirKingIndex],
               state: 'check'
@@ -179,7 +199,7 @@ export default function Game() {
     );
   }
 
-  function isCheck({ squares, kingIndex }) {
+  function checkerPos({ squares, kingIndex, player }) {
     for (let i = 0; i < squares.length; i++) {
       if (!squares[i].player || squares[i].player !== player) {
         continue;
@@ -191,13 +211,13 @@ export default function Game() {
           squares
         })
       ) {
-        return true;
+        return i;
       }
     }
-    return false;
+    return -1;
   }
 
-  function willResultInCheck({ src, dest }) {
+  function kingWillBeCapturedBy({ src, dest }) {
     let myKingIndex = -1;
     const newSquares = squares.map((square, index) => {
       if (index === dest) {
@@ -221,26 +241,15 @@ export default function Game() {
     }
 
     for (let i = 0; i < newSquares.length; i++) {
-      if (!newSquares[i].player || newSquares[i].player === player) {
-        continue;
-      }
-      if (
-        getPiece(newSquares[i]).isMovePossible(
-          i,
-          myKingIndex,
-          newSquares[myKingIndex]
-        ) &&
-        isMoveLegal({
-          srcToDestPath: getPiece(newSquares[i]).getSrcToDestPath(
-            i,
-            myKingIndex
-          ),
-          squares: newSquares
-        })
-      ) {
-        return true;
+      const checkerPosition = checkerPos({
+        squares: newSquares,
+        kingIndex: myKingIndex,
+        player: getOpponentPlayerId(player)
+      });
+      if (checkerPosition !== -1) {
+        return checkerPosition;
       }
     }
-    return false;
+    return -1;
   }
 }

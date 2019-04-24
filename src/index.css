@@ -39,6 +39,10 @@ body {
   background: yellow;
 }
 
+.dark.danger {
+  background: red;
+}
+
 .light {
   background-color: RGB(234, 240, 206);
 }
@@ -49,4 +53,8 @@ body {
 
 .light.check {
   background: yellow;
+}
+
+.light.danger {
+  background: red;
 }
