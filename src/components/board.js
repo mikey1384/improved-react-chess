@@ -13,10 +13,6 @@ export default function Board({ onClick, squares }) {
   for (let i = 0; i < 8; i++) {
     const squareRows = [];
     for (let j = 0; j < 8; j++) {
-      const squareShade =
-        (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
-          ? 'light'
-          : 'dark';
       const index = i * 8 + j;
       squareRows.push(
         <Square
@@ -27,14 +23,17 @@ export default function Board({ onClick, squares }) {
               ? { ...getPiece(squares[index]).style, cursor: 'pointer' }
               : getPiece(squares[index]).style
           }
-          shade={squareShade}
+          shade={
+            (isEven(i) && isEven(j)) || (!isEven(i) && !isEven(j))
+              ? 'light'
+              : 'dark'
+          }
           onClick={() => onClick(index)}
         />
       );
     }
     board.push(<div key={i}>{squareRows}</div>);
   }
-
   return <div>{board}</div>;
 }
 

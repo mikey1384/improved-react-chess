@@ -101,7 +101,10 @@ export default function Game() {
                     state: 'danger'
                   };
                 }
-                return square;
+                return {
+                  ...square,
+                  state: square.state === 'danger' ? '' : square.state
+                };
               })
             );
             setStatus('Your King will be captured if you make that move.');
@@ -155,33 +158,6 @@ export default function Game() {
     }
   }
 
-  function getKingIndex({ player, squares }) {
-    let kingIndex = -1;
-    for (let i = 0; i < squares.length; i++) {
-      if (squares[i].type === 'king' && squares[i].player === player) {
-        kingIndex = i;
-        break;
-      }
-    }
-    return kingIndex;
-  }
-
-  function getOpponentPlayerId(player) {
-    return player === 1 ? 2 : 1;
-  }
-
-  function isMoveLegal({ srcToDestPath, ignore, include, squares }) {
-    for (let i = 0; i < srcToDestPath.length; i++) {
-      if (
-        srcToDestPath[i] === include ||
-        (srcToDestPath[i] !== ignore && squares[srcToDestPath[i]].player)
-      ) {
-        return false;
-      }
-    }
-    return true;
-  }
-
   function isPossibleAndLegal({ src, dest }) {
     if (squares[dest].player === player) {
       return false;
@@ -197,24 +173,6 @@ export default function Game() {
         squares
       })
     );
-  }
-
-  function checkerPos({ squares, kingIndex, player }) {
-    for (let i = 0; i < squares.length; i++) {
-      if (!squares[i].player || squares[i].player !== player) {
-        continue;
-      }
-      if (
-        getPiece(squares[i]).isMovePossible(i, kingIndex, true) &&
-        isMoveLegal({
-          srcToDestPath: getPiece(squares[i]).getSrcToDestPath(i, kingIndex),
-          squares
-        })
-      ) {
-        return i;
-      }
-    }
-    return -1;
   }
 
   function kingWillBeCapturedBy({ src, dest }) {
@@ -252,4 +210,49 @@ export default function Game() {
     }
     return -1;
   }
+}
+
+function getKingIndex({ player, squares }) {
+  let kingIndex = -1;
+  for (let i = 0; i < squares.length; i++) {
+    if (squares[i].type === 'king' && squares[i].player === player) {
+      kingIndex = i;
+      break;
+    }
+  }
+  return kingIndex;
+}
+
+function getOpponentPlayerId(player) {
+  return player === 1 ? 2 : 1;
+}
+
+function isMoveLegal({ srcToDestPath, ignore, include, squares }) {
+  for (let i = 0; i < srcToDestPath.length; i++) {
+    if (
+      srcToDestPath[i] === include ||
+      (srcToDestPath[i] !== ignore && squares[srcToDestPath[i]].player)
+    ) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function checkerPos({ squares, kingIndex, player }) {
+  for (let i = 0; i < squares.length; i++) {
+    if (!squares[i].player || squares[i].player !== player) {
+      continue;
+    }
+    if (
+      getPiece(squares[i]).isMovePossible(i, kingIndex, true) &&
+      isMoveLegal({
+        srcToDestPath: getPiece(squares[i]).getSrcToDestPath(i, kingIndex),
+        squares
+      })
+    ) {
+      return i;
+    }
+  }
+  return -1;
 }
