@@ -28,15 +28,15 @@ body {
 }
 
 .dark {
-  background-color: RGB(187, 190, 100);
+  background-color: RGB(104, 136, 107);
 }
 
 .dark.highlighted {
-  background: RGB(104, 136, 107);
+  background: RGB(164, 236, 137);
 }
 
 .dark.check {
-  background: red;
+  background: yellow;
 }
 
 .light {
@@ -44,9 +44,9 @@ body {
 }
 
 .light.highlighted {
-  background: RGB(111, 143, 114);
+  background: RGB(194, 260, 226);
 }
 
 .light.check {
-  background: red;
+  background: yellow;
 }

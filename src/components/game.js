@@ -72,12 +72,6 @@ export default function Game() {
         setStatus('Choose destination for the selected piece');
         setSquares(squares =>
           squares.map((square, index) => {
-            if (index !== i && index === selectedIndex) {
-              return {
-                ...square,
-                state: square.state === 'check' ? 'check' : ''
-              };
-            }
             if (index === i || isPossibleAndLegal({ src: i, dest: index })) {
               return {
                 ...square,
@@ -136,10 +130,6 @@ export default function Game() {
           setPlayer(getOpponentPlayerId(player));
           setStatus('');
           setTurn(turn === 'white' ? 'black' : 'white');
-        } else {
-          setStatus(
-            'Wrong selection. Choose valid source and destination again.'
-          );
         }
       }
     }
@@ -235,7 +225,11 @@ export default function Game() {
         continue;
       }
       if (
-        getPiece(newSquares[i]).isMovePossible(i, myKingIndex, true) &&
+        getPiece(newSquares[i]).isMovePossible(
+          i,
+          myKingIndex,
+          newSquares[myKingIndex]
+        ) &&
         isMoveLegal({
           srcToDestPath: getPiece(newSquares[i]).getSrcToDestPath(
             i,

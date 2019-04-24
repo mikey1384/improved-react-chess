@@ -16,6 +16,10 @@ export default function getPiece({ type, player }) {
           }')`
         },
         isMovePossible(src, dest, isDestEnemyOccupied) {
+          const srcRow = Math.floor(src / 8);
+          const srcColumn = src % 8;
+          const destRow = Math.floor(dest / 8);
+          const destColumn = dest % 8;
           if (player === 1) {
             if (
               (dest === src - 8 ||
@@ -26,7 +30,8 @@ export default function getPiece({ type, player }) {
               return true;
             } else if (
               isDestEnemyOccupied &&
-              (dest === src - 9 || dest === src - 7)
+              srcRow - destRow === 1 &&
+              Math.abs(srcColumn - destColumn) === 1
             ) {
               return true;
             }
@@ -42,7 +47,8 @@ export default function getPiece({ type, player }) {
               return true;
             } else if (
               isDestEnemyOccupied &&
-              (dest === src + 9 || dest === src + 7)
+              destRow - srcRow === 1 &&
+              Math.abs(srcColumn - destColumn) === 1
             ) {
               return true;
             }
@@ -241,15 +247,17 @@ export default function getPiece({ type, player }) {
           }')`
         },
         isMovePossible(src, dest) {
+          const srcRow = Math.floor(src / 8);
+          const srcColumn = src % 8;
+          const destRow = Math.floor(dest / 8);
+          const destColumn = dest % 8;
+
           return (
-            src - 9 === dest ||
-            src - 8 === dest ||
-            src - 7 === dest ||
-            src + 1 === dest ||
-            src + 9 === dest ||
-            src + 8 === dest ||
-            src + 7 === dest ||
-            src - 1 === dest
+            (Math.abs(srcRow - destRow) === Math.abs(srcColumn - destColumn) ||
+              srcRow === destRow ||
+              srcColumn === destColumn) &&
+            (Math.abs(srcRow - destRow) === 1 ||
+              Math.abs(srcColumn - destColumn) === 1)
           );
         },
         getSrcToDestPath(src, dest) {
