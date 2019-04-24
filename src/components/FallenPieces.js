@@ -9,6 +9,32 @@ FallenPieces.propTypes = {
 };
 
 export default function FallenPieces({ whiteFallenPieces, blackFallenPieces }) {
+  const whiteFallenHash = {};
+  const blackFallenHash = {};
+
+  for (let piece of whiteFallenPieces) {
+    if (!whiteFallenHash[piece.type]) {
+      whiteFallenHash[piece.type] = { ...piece, count: 1 };
+    } else {
+      whiteFallenHash[piece.type].count += 1;
+    }
+  }
+
+  for (let piece of blackFallenPieces) {
+    if (!blackFallenHash[piece.type]) {
+      blackFallenHash[piece.type] = { ...piece, count: 1 };
+    } else {
+      blackFallenHash[piece.type].count += 1;
+    }
+  }
+
+  const whiteFallenPiecesCompressed = Object.keys(whiteFallenHash).map(
+    key => whiteFallenHash[key]
+  );
+  const blackFallenPiecesCompressed = Object.keys(blackFallenHash).map(
+    key => blackFallenHash[key]
+  );
+
   return (
     <div
       style={{
@@ -18,20 +44,24 @@ export default function FallenPieces({ whiteFallenPieces, blackFallenPieces }) {
       }}
     >
       <div style={{ minHeight: '3rem' }}>
-        {whiteFallenPieces.map((piece, index) => (
+        {whiteFallenPiecesCompressed.map((piece, index) => (
           <Square
             key={index}
             piece={getPiece(piece)}
             style={{ ...getPiece(piece).style, backgroundColor: null }}
+            count={piece.count}
+            player="white"
           />
         ))}
       </div>
       <div style={{ minHeight: '3rem' }}>
-        {blackFallenPieces.map((piece, index) => (
+        {blackFallenPiecesCompressed.map((piece, index) => (
           <Square
             key={index}
             piece={getPiece(piece)}
             style={{ ...getPiece(piece).style, backgroundColor: null }}
+            count={piece.count}
+            player="black"
           />
         ))}
       </div>

@@ -120,9 +120,21 @@ export default function Game() {
           setSelectedIndex(-1);
           const newSquares = squares.map((square, index) => {
             if (index === i) {
+              const firstRow = [0, 1, 2, 3, 4, 5, 6, 7];
+              const lastRow = [56, 57, 58, 59, 60, 61, 62, 63];
+              let transform = false;
+              if (squares[selectedIndex].type === 'pawn') {
+                if (player === 1 && firstRow.indexOf(index) !== -1) {
+                  transform = true;
+                }
+                if (player === 2 && lastRow.indexOf(index) !== -1) {
+                  transform = true;
+                }
+              }
               return {
                 ...squares[selectedIndex],
-                state: ''
+                state: '',
+                type: transform ? 'queen' : squares[selectedIndex].type
               };
             }
             if (index === selectedIndex) return {};
