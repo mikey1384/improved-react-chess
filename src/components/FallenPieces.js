@@ -39,27 +39,26 @@ export default function FallenPieces({ whiteFallenPieces, blackFallenPieces }) {
     <div
       style={{
         display: 'flex',
-        flexDirection: 'column',
-        minHeight: '6rem'
+        flexDirection: 'column'
       }}
     >
-      <div style={{ minHeight: '3rem' }}>
+      <div style={{ display: 'flex' }}>
         {whiteFallenPiecesCompressed.map((piece, index) => (
           <Square
             key={index}
             piece={getPiece(piece)}
-            style={{ ...getPiece(piece).style, backgroundColor: null }}
+            style={{ ...getPiece(piece).style, height: '3rem', width: '3rem' }}
             count={piece.count}
             player="white"
           />
         ))}
       </div>
-      <div style={{ minHeight: '3rem' }}>
+      <div style={{ display: 'flex' }}>
         {blackFallenPiecesCompressed.map((piece, index) => (
           <Square
             key={index}
             piece={getPiece(piece)}
-            style={{ ...getPiece(piece).style, backgroundColor: null }}
+            style={{ ...getPiece(piece).style, height: '3rem', width: '3rem' }}
             count={piece.count}
             player="black"
           />

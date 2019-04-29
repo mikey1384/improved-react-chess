@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { css } from 'emotion';
 
 Square.propTypes = {
   className: PropTypes.string,
@@ -19,9 +20,19 @@ export default function Square({
   player
 }) {
   return (
-    <button
+    <div
+      className={`${css`
+        background-repeat: no-repeat;
+        background-position: center;
+        font-size: 1.5rem;
+        &.highlighted {
+          cursor: pointer;
+        }
+        &:focus {
+          outline: none;
+        }
+      `} ${shade} ${className}`}
       style={{ position: 'relative', ...style }}
-      className={`square ${shade} ${className}`}
       onClick={onClick}
     >
       {count > 1 && (
@@ -36,6 +47,6 @@ export default function Square({
           &times;{count}
         </div>
       )}
-    </button>
+    </div>
   );
 }

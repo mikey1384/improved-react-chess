@@ -4,43 +4,24 @@ body {
   background-color: #b4b4b4;
 }
 
-.square {
-  background: transparent;
-  border: 1px solid transparent;
-  float: left;
-  font-size: 24px;
-  font-weight: bold;
-  line-height: 34px;
-  height: 48px;
-  margin-right: -1px;
-  margin-top: -1px;
-  padding: 0;
-  text-align: center;
-  width: 48px;
-}
-
-.square:focus {
-  outline: none;
-}
-
-.square.highlighted {
-  cursor: pointer;
-}
-
 .dark {
   background-color: RGB(104, 136, 107);
 }
 
 .dark.highlighted {
-  background: RGB(164, 236, 137);
+  background-color: RGB(164, 236, 137);
 }
 
 .dark.check {
-  background: yellow;
+  background-color: yellow;
 }
 
 .dark.danger {
-  background: yellow;
+  background-color: yellow;
+}
+
+.dark.checkmate {
+  background-color: red;
 }
 
 .light {
@@ -48,13 +29,17 @@ body {
 }
 
 .light.highlighted {
-  background: RGB(194, 260, 226);
+  background-color: RGB(194, 260, 226);
 }
 
 .light.check {
-  background: yellow;
+  background-color: yellow;
 }
 
 .light.danger {
-  background: yellow;
+  background-color: yellow;
+}
+
+.light.checkmate {
+  background-color: red;
 }

@@ -15,29 +15,44 @@ export default function Game() {
 
   return (
     <div>
-      <div style={{ display: 'flex' }}>
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
+        }}
+      >
         <Board squares={squares} onClick={handleClick} />
-        <div style={{ marginLeft: '1rem' }}>
-          <p
-            style={{
-              fontSize: '1rem',
-              margin: 0,
-              fontWeight: 'bold',
-              lineHeight: 1.5
-            }}
-          >
-            Turn
-          </p>
-          <div
-            style={{
-              width: '2rem',
-              height: '2rem',
-              border: '1px solid #000',
-              marginBottom: '1rem',
-              backgroundColor: turn
-            }}
-          />
-          <div style={{ minHeight: '4rem' }}>{status}</div>
+        <div
+          style={{
+            display: 'flex',
+            width: '100%',
+            flexDirection: 'column',
+            alignItems: 'center'
+          }}
+        >
+          <div>
+            <div
+              style={{
+                width: '100%',
+                fontSize: '1rem',
+                margin: 0,
+                fontWeight: 'bold',
+                lineHeight: 1.5
+              }}
+            >
+              Turn
+            </div>
+            <div
+              style={{
+                width: '2rem',
+                height: '2rem',
+                border: '1px solid #000',
+                backgroundColor: turn
+              }}
+            />
+          </div>
+          <div style={{ minHeight: '1rem' }}>{status}</div>
           <FallenPieces
             whiteFallenPieces={whiteFallenPieces}
             blackFallenPieces={blackFallenPieces}
@@ -60,7 +75,10 @@ export default function Game() {
           isPossibleAndLegal({ src: i, dest: index, squares, player })
             ? {
                 ...square,
-                state: square.state === 'check' ? 'check' : 'highlighted'
+                state:
+                  ['check', 'checkmate'].indexOf(square.state) !== -1
+                    ? square.state
+                    : 'highlighted'
               }
             : square
         )
@@ -79,12 +97,18 @@ export default function Game() {
             ) {
               return {
                 ...square,
-                state: square.state === 'check' ? 'check' : 'highlighted'
+                state:
+                  ['check', 'checkmate'].indexOf(square.state) !== -1
+                    ? square.state
+                    : 'highlighted'
               };
             }
             return {
               ...square,
-              state: square.state === 'check' ? 'check' : ''
+              state:
+                ['check', 'checkmate'].indexOf(square.state) !== -1
+                  ? square.state
+                  : ''
             };
           })
         );
@@ -168,6 +192,13 @@ export default function Game() {
           });
           if (gameOverObj) {
             if (gameOverObj.isCheckmate) {
+              setSquares(squares =>
+                squares.map((square, index) =>
+                  index === theirKingIndex
+                    ? { ...square, state: 'checkmate' }
+                    : square
+                )
+              );
               console.log('checkmate');
             } else {
               console.log('stalemate');
@@ -178,155 +209,6 @@ export default function Game() {
         }
       }
     }
-  }
-
-  function isGameOver({ player, squares }) {
-    let kingIndex = -1;
-    const playerPieces = squares.reduce((prev, curr, index) => {
-      if (curr.player && curr.player === player) {
-        if (curr.type === 'king') {
-          kingIndex = index;
-          return [{ piece: curr, index }].concat(prev);
-        }
-        return prev.concat({ piece: curr, index });
-      }
-      return prev;
-    }, []);
-    let isChecked = false;
-    const nextDest = [
-      kingIndex - 1,
-      kingIndex + 1,
-      kingIndex - 7,
-      kingIndex - 8,
-      kingIndex - 9,
-      kingIndex + 7,
-      kingIndex + 8,
-      kingIndex + 9
-    ];
-    let checkers = [];
-    const kingPiece = squares[kingIndex];
-    if (kingPiece.state === 'check') {
-      isChecked = true;
-      checkers = checkerPos({
-        squares,
-        kingIndex,
-        player: getOpponentPlayerId(player)
-      });
-    }
-    const possibleNextDest = nextDest.filter(
-      dest =>
-        dest >= 0 &&
-        dest <= 63 &&
-        isPossibleAndLegal({
-          src: kingIndex,
-          dest,
-          player,
-          squares
-        })
-    );
-    if (possibleNextDest.length === 0 && kingPiece.state !== 'check') {
-      return false;
-    }
-    let kingCanMove = false;
-    let potentialKingSlayers = [];
-    for (let dest of possibleNextDest) {
-      const newSquares = returnBoardAfterMove({
-        src: kingIndex,
-        dest,
-        player,
-        squares
-      });
-      potentialKingSlayers = kingWillBeCapturedBy({
-        kingIndex: dest,
-        player,
-        squares: newSquares
-      });
-      if (potentialKingSlayers.length === 0) {
-        kingCanMove = true;
-      }
-    }
-    if (kingCanMove) return false;
-    if (isChecked) {
-      if (checkers.length === 1) {
-        for (let piece of playerPieces) {
-          if (
-            piece.piece.type !== 'king' &&
-            isPossibleAndLegal({
-              src: piece.index,
-              dest: checkers[0],
-              player,
-              squares
-            })
-          ) {
-            return false;
-          }
-        }
-      }
-      const allBlockPoints = [];
-      for (let checker of checkers) {
-        const trajectory = getPiece(squares[checker]).getSrcToDestPath(
-          checker,
-          kingIndex
-        );
-        if (trajectory.length === 0) return { isCheckmate: true };
-        const blockPoints = [];
-        for (let square of trajectory) {
-          for (let piece of playerPieces) {
-            if (
-              piece.piece.type !== 'king' &&
-              isPossibleAndLegal({
-                src: piece.index,
-                dest: square,
-                player,
-                squares
-              })
-            ) {
-              if (checkers.length === 1) return false;
-              if (blockPoints.indexOf(square) === -1) blockPoints.push(square);
-            }
-          }
-        }
-        if (blockPoints.length === 0) return { isCheckmate: true };
-        allBlockPoints.push(blockPoints);
-      }
-      if (allBlockPoints.length === 1) return false;
-      for (let i = 0; i < allBlockPoints[0].length; i++) {
-        let blockable = true;
-        for (let j = 0; j < allBlockPoints.length; j++) {
-          if (allBlockPoints[j].indexOf(allBlockPoints[0][i]) === -1) {
-            blockable = false;
-            break;
-          }
-        }
-        if (blockable) return false;
-      }
-      return { isCheckmate: true };
-    } else {
-      for (let i = 0; i < squares.length; i++) {
-        for (let piece of playerPieces) {
-          if (
-            isPossibleAndLegal({ src: piece.index, dest: i, player, squares })
-          ) {
-            const newSquares = returnBoardAfterMove({
-              src: piece.index,
-              dest: i,
-              player,
-              squares
-            });
-            if (
-              kingWillBeCapturedBy({
-                kingIndex,
-                player,
-                squares: newSquares
-              }).length === 0
-            ) {
-              return false;
-            }
-          }
-        }
-      }
-    }
-    return { isStalemate: true };
   }
 }
 
@@ -362,6 +244,155 @@ function getKingIndex({ player, squares }) {
 
 function getOpponentPlayerId(player) {
   return player === 1 ? 2 : 1;
+}
+
+function isGameOver({ player, squares }) {
+  let kingIndex = -1;
+  const playerPieces = squares.reduce((prev, curr, index) => {
+    if (curr.player && curr.player === player) {
+      if (curr.type === 'king') {
+        kingIndex = index;
+        return [{ piece: curr, index }].concat(prev);
+      }
+      return prev.concat({ piece: curr, index });
+    }
+    return prev;
+  }, []);
+  let isChecked = false;
+  const nextDest = [
+    kingIndex - 1,
+    kingIndex + 1,
+    kingIndex - 7,
+    kingIndex - 8,
+    kingIndex - 9,
+    kingIndex + 7,
+    kingIndex + 8,
+    kingIndex + 9
+  ];
+  let checkers = [];
+  const kingPiece = squares[kingIndex];
+  if (kingPiece.state === 'check') {
+    isChecked = true;
+    checkers = checkerPos({
+      squares,
+      kingIndex,
+      player: getOpponentPlayerId(player)
+    });
+  }
+  const possibleNextDest = nextDest.filter(
+    dest =>
+      dest >= 0 &&
+      dest <= 63 &&
+      isPossibleAndLegal({
+        src: kingIndex,
+        dest,
+        player,
+        squares
+      })
+  );
+  if (possibleNextDest.length === 0 && kingPiece.state !== 'check') {
+    return false;
+  }
+  let kingCanMove = false;
+  let potentialKingSlayers = [];
+  for (let dest of possibleNextDest) {
+    const newSquares = returnBoardAfterMove({
+      src: kingIndex,
+      dest,
+      player,
+      squares
+    });
+    potentialKingSlayers = kingWillBeCapturedBy({
+      kingIndex: dest,
+      player,
+      squares: newSquares
+    });
+    if (potentialKingSlayers.length === 0) {
+      kingCanMove = true;
+    }
+  }
+  if (kingCanMove) return false;
+  if (isChecked) {
+    if (checkers.length === 1) {
+      for (let piece of playerPieces) {
+        if (
+          piece.piece.type !== 'king' &&
+          isPossibleAndLegal({
+            src: piece.index,
+            dest: checkers[0],
+            player,
+            squares
+          })
+        ) {
+          return false;
+        }
+      }
+    }
+    const allBlockPoints = [];
+    for (let checker of checkers) {
+      const trajectory = getPiece(squares[checker]).getSrcToDestPath(
+        checker,
+        kingIndex
+      );
+      if (trajectory.length === 0) return { isCheckmate: true };
+      const blockPoints = [];
+      for (let square of trajectory) {
+        for (let piece of playerPieces) {
+          if (
+            piece.piece.type !== 'king' &&
+            isPossibleAndLegal({
+              src: piece.index,
+              dest: square,
+              player,
+              squares
+            })
+          ) {
+            if (checkers.length === 1) return false;
+            if (blockPoints.indexOf(square) === -1) blockPoints.push(square);
+          }
+        }
+      }
+      if (blockPoints.length === 0) return { isCheckmate: true };
+      allBlockPoints.push(blockPoints);
+    }
+    if (allBlockPoints.length === 1) return false;
+    for (let i = 0; i < allBlockPoints[0].length; i++) {
+      let blockable = true;
+      for (let j = 0; j < allBlockPoints.length; j++) {
+        if (allBlockPoints[j].indexOf(allBlockPoints[0][i]) === -1) {
+          blockable = false;
+          break;
+        }
+      }
+      if (blockable) return false;
+    }
+    return { isCheckmate: true };
+  } else {
+    for (let i = 0; i < squares.length; i++) {
+      for (let piece of playerPieces) {
+        if (
+          isPossibleAndLegal({ src: piece.index, dest: i, player, squares })
+        ) {
+          const newSquares = returnBoardAfterMove({
+            src: piece.index,
+            dest: i,
+            player,
+            squares
+          });
+          if (
+            kingWillBeCapturedBy({
+              kingIndex: piece.piece.type === 'king' ? i : kingIndex,
+              player,
+              squares: newSquares
+            }).length === 0
+          ) {
+            return false;
+          }
+        }
+      }
+    }
+  }
+  return { isStalemate: true };
 }
 
 function isMoveLegal({ srcToDestPath, ignore, include, squares }) {

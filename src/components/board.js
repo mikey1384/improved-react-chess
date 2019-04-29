@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import Square from './Square';
 import getPiece from '../helpers/piece';
+import { css } from 'emotion';
 
 Board.propTypes = {
   onClick: PropTypes.func.isRequired,
@@ -32,9 +33,21 @@ export default function Board({ onClick, squares }) {
         />
       );
     }
-    board.push(<div key={i}>{squareRows}</div>);
+    board.push(<Fragment key={i}>{squareRows}</Fragment>);
   }
-  return <div>{board}</div>;
+  return (
+    <div
+      className={css`
+        margin: 0 auto;
+        width: 480px;
+        height: 480px;
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+      `}
+    >
+      {board}
+    </div>
+  );
 }
 
 function isEven(num) {
