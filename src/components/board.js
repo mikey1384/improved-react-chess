@@ -6,10 +6,11 @@ import { css } from 'emotion';
 
 Board.propTypes = {
   onClick: PropTypes.func.isRequired,
+  player: PropTypes.number.isRequired,
   squares: PropTypes.array.isRequired
 };
 
-export default function Board({ onClick, squares }) {
+export default function Board({ onClick, squares, player }) {
   const board = [];
   for (let i = 0; i < 8; i++) {
     const squareRows = [];
@@ -21,7 +22,14 @@ export default function Board({ onClick, squares }) {
           className={squares[index].state}
           style={
             squares[index].player
-              ? { ...getPiece(squares[index]).style, cursor: 'pointer' }
+              ? {
+                  ...getPiece(squares[index]).style,
+                  cursor:
+                    player === squares[index].player ||
+                    squares[index].state === 'highlighted'
+                      ? 'pointer'
+                      : 'default'
+                }
               : getPiece(squares[index]).style
           }
           shade={

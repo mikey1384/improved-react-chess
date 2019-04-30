@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Board from './Board';
 import FallenPieces from './FallenPieces.js';
 import initialiseChessBoard from '../helpers/board-initialiser.js';
@@ -12,6 +12,22 @@ export default function Game() {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [status, setStatus] = useState('');
   const [turn, setTurn] = useState('white');
+  useEffect(() => {
+    const players = { white: 1, black: 2 };
+    setSquares(squares =>
+      squares.map(square =>
+        square.player === players[turn]
+          ? {
+              ...square,
+              state:
+                ['check', 'checkmate'].indexOf(square.state) !== -1
+                  ? square.state
+                  : 'highlighted'
+            }
+          : square
+      )
+    );
+  }, [turn]);
 
   return (
     <div>
@@ -22,7 +38,8 @@ export default function Game() {
           alignItems: 'center'
         }}
       >
-        <Board squares={squares} onClick={handleClick} />
+        <FallenPieces whiteFallenPieces={whiteFallenPieces} />
+        <Board squares={squares} onClick={handleClick} player={player} />
         <div
           style={{
             display: 'flex',
@@ -31,32 +48,8 @@ export default function Game() {
             alignItems: 'center'
           }}
         >
-          <div>
-            <div
-              style={{
-                width: '100%',
-                fontSize: '1rem',
-                margin: 0,
-                fontWeight: 'bold',
-                lineHeight: 1.5
-              }}
-            >
-              Turn
-            </div>
-            <div
-              style={{
-                width: '2rem',
-                height: '2rem',
-                border: '1px solid #000',
-                backgroundColor: turn
-              }}
-            />
-          </div>
+          <FallenPieces blackFallenPieces={blackFallenPieces} />
           <div style={{ minHeight: '1rem' }}>{status}</div>
-          <FallenPieces
-            whiteFallenPieces={whiteFallenPieces}
-            blackFallenPieces={blackFallenPieces}
-          />
         </div>
       </div>
     </div>
@@ -65,9 +58,7 @@ export default function Game() {
   function handleClick(i) {
     if (selectedIndex === -1) {
       if (!squares[i] || squares[i].player !== player) {
-        return setStatus(
-          'Wrong selection. Choose player ' + player + ' pieces.'
-        );
+        return;
       }
       setSquares(squares =>
         squares.map((square, index) =>
@@ -80,15 +71,21 @@ export default function Game() {
                     ? square.state
                     : 'highlighted'
               }
-            : square
+            : {
+                ...square,
+                state:
+                  ['check', 'checkmate'].indexOf(square.state) !== -1
+                    ? square.state
+                    : ''
+              }
         )
       );
-      setStatus('Choose destination for the selected piece');
+      setStatus('');
       setSelectedIndex(i);
     } else {
       if (squares[i] && squares[i].player === player) {
         setSelectedIndex(i);
-        setStatus('Choose destination for the selected piece');
+        setStatus('');
         setSquares(squares =>
           squares.map((square, index) => {
             if (
@@ -186,12 +183,12 @@ export default function Game() {
           setWhiteFallenPieces(newWhiteFallenPieces);
           setBlackFallenPieces(newBlackFallenPieces);
           setStatus('');
-          const gameOverObj = isGameOver({
+          const gameOver = isGameOver({
             player: getOpponentPlayerId(player),
             squares: newSquares
           });
-          if (gameOverObj) {
-            if (gameOverObj.isCheckmate) {
+          if (gameOver) {
+            if (gameOver.isCheckmate) {
               setSquares(squares =>
                 squares.map((square, index) =>
                   index === theirKingIndex
