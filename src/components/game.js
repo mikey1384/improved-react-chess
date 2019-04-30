@@ -12,6 +12,7 @@ export default function Game() {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const [status, setStatus] = useState('');
   const [turn, setTurn] = useState('white');
+  const [gameOverMsg, setGameOverMsg] = useState();
   useEffect(() => {
     const players = { white: 1, black: 2 };
     setSquares(squares =>
@@ -20,6 +21,7 @@ export default function Game() {
           ? {
               ...square,
               state:
+                gameOverMsg ||
                 ['check', 'checkmate'].indexOf(square.state) !== -1
                   ? square.state
                   : 'highlighted'
@@ -48,8 +50,8 @@ export default function Game() {
             alignItems: 'center'
           }}
         >
+          <div style={{ lineHeight: 2 }}>{status || gameOverMsg}</div>
           <FallenPieces blackFallenPieces={blackFallenPieces} />
-          <div style={{ minHeight: '1rem' }}>{status}</div>
         </div>
       </div>
     </div>
@@ -188,7 +190,7 @@ export default function Game() {
             squares: newSquares
           });
           if (gameOver) {
-            if (gameOver.isCheckmate) {
+            if (gameOver === 'Checkmate') {
               setSquares(squares =>
                 squares.map((square, index) =>
                   index === theirKingIndex
@@ -196,10 +198,8 @@ export default function Game() {
                     : square
                 )
               );
-              console.log('checkmate');
-            } else {
-              console.log('stalemate');
             }
+            setGameOverMsg(gameOver);
           }
           setPlayer(getOpponentPlayerId(player));
           setTurn(turn === 'white' ? 'black' : 'white');
@@ -331,7 +331,7 @@ function isGameOver({ player, squares }) {
         checker,
         kingIndex
       );
-      if (trajectory.length === 0) return { isCheckmate: true };
+      if (trajectory.length === 0) return 'Checkmate';
       const blockPoints = [];
       for (let square of trajectory) {
         for (let piece of playerPieces) {
@@ -349,7 +349,7 @@ function isGameOver({ player, squares }) {
           }
         }
       }
-      if (blockPoints.length === 0) return { isCheckmate: true };
+      if (blockPoints.length === 0) return 'Checkmate';
       allBlockPoints.push(blockPoints);
     }
     if (allBlockPoints.length === 1) return false;
@@ -363,7 +363,7 @@ function isGameOver({ player, squares }) {
       }
       if (blockable) return false;
     }
-    return { isCheckmate: true };
+    return 'Checkmate';
   } else {
     for (let i = 0; i < squares.length; i++) {
       for (let piece of playerPieces) {
@@ -389,7 +389,7 @@ function isGameOver({ player, squares }) {
       }
     }
   }
-  return { isStalemate: true };
+  return 'Stalemate';
 }
 
 function isMoveLegal({ srcToDestPath, ignore, include, squares }) {
