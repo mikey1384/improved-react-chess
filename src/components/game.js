@@ -9,7 +9,8 @@ import {
   isGameOver,
   isPossibleAndLegal,
   kingWillBeCapturedBy,
-  returnBoardAfterMove
+  returnBoardAfterMove,
+  highlightPossiblePathsFromSrc
 } from '../helpers/model';
 
 export default function Game() {
@@ -71,24 +72,7 @@ export default function Game() {
         return;
       }
       setSquares(squares =>
-        squares.map((square, index) =>
-          index === i ||
-          isPossibleAndLegal({ src: i, dest: index, squares, player })
-            ? {
-                ...square,
-                state:
-                  ['check', 'checkmate'].indexOf(square.state) !== -1
-                    ? square.state
-                    : 'highlighted'
-              }
-            : {
-                ...square,
-                state:
-                  ['check', 'checkmate'].indexOf(square.state) !== -1
-                    ? square.state
-                    : ''
-              }
-        )
+        highlightPossiblePathsFromSrc({ player, squares, src: i })
       );
       setStatus('');
       setSelectedIndex(i);
@@ -97,27 +81,7 @@ export default function Game() {
         setSelectedIndex(i);
         setStatus('');
         setSquares(squares =>
-          squares.map((square, index) => {
-            if (
-              index === i ||
-              isPossibleAndLegal({ src: i, dest: index, squares, player })
-            ) {
-              return {
-                ...square,
-                state:
-                  ['check', 'checkmate'].indexOf(square.state) !== -1
-                    ? square.state
-                    : 'highlighted'
-              };
-            }
-            return {
-              ...square,
-              state:
-                ['check', 'checkmate'].indexOf(square.state) !== -1
-                  ? square.state
-                  : ''
-            };
-          })
+          highlightPossiblePathsFromSrc({ player, squares, src: i })
         );
       } else {
         const newWhiteFallenPieces = [...whiteFallenPieces];
@@ -125,28 +89,18 @@ export default function Game() {
         if (
           isPossibleAndLegal({ src: selectedIndex, dest: i, squares, player })
         ) {
-          let myKingIndex = -1;
           const newSquares = returnBoardAfterMove({
             squares,
             src: selectedIndex,
             dest: i,
             player
           });
-          for (let i = 0; i < newSquares.length; i++) {
-            if (
-              newSquares[i].type === 'king' &&
-              newSquares[i].player === player
-            ) {
-              myKingIndex = i;
-              break;
-            }
-          }
+          const myKingIndex = getKingIndex({ player, squares: newSquares });
           const potentialCapturers = kingWillBeCapturedBy({
             kingIndex: myKingIndex,
             player,
             squares: newSquares
           });
-
           if (potentialCapturers.length > 0) {
             setSquares(squares =>
               squares.map((square, index) => {
@@ -166,11 +120,9 @@ export default function Game() {
             return;
           }
           if (squares[i].player) {
-            if (squares[i].player === 1) {
-              newWhiteFallenPieces.push(squares[i]);
-            } else {
-              newBlackFallenPieces.push(squares[i]);
-            }
+            squares[i].player === 1
+              ? newWhiteFallenPieces.push(squares[i])
+              : newBlackFallenPieces.push(squares[i]);
           }
           setSelectedIndex(-1);
           const theirKingIndex = getKingIndex({

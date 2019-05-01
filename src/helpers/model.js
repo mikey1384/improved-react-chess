@@ -49,6 +49,26 @@ export function getPlayerPieces({ player, squares }) {
   return { kingIndex, playerPieces };
 }
 
+export function highlightPossiblePathsFromSrc({ player, squares, src }) {
+  return squares.map((square, index) =>
+    index === src || isPossibleAndLegal({ src, dest: index, squares, player })
+      ? {
+          ...square,
+          state:
+            ['check', 'checkmate'].indexOf(square.state) !== -1
+              ? square.state
+              : 'highlighted'
+        }
+      : {
+          ...square,
+          state:
+            ['check', 'checkmate'].indexOf(square.state) !== -1
+              ? square.state
+              : ''
+        }
+  );
+}
+
 export function isGameOver({ player, squares }) {
   const { kingIndex, playerPieces } = getPlayerPieces({ player, squares });
   let isChecked = false;
