@@ -19,15 +19,15 @@ export function checkerPos({ squares, kingIndex, player }) {
   return result;
 }
 
-export function getKingIndex({ player, squares }) {
-  let kingIndex = -1;
+export function getPieceIndex({ player, squares, type }) {
+  let result = -1;
   for (let i = 0; i < squares.length; i++) {
-    if (squares[i].type === 'king' && squares[i].player === player) {
-      kingIndex = i;
+    if (squares[i].type === type && squares[i].player === player) {
+      result = i;
       break;
     }
   }
-  return kingIndex;
+  return result;
 }
 
 export function getOpponentPlayerId(player) {

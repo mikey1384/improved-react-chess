@@ -29,7 +29,7 @@ body {
 }
 
 .light.highlighted {
-  background-color: RGB(174, 260, 196);
+  background-color: RGB(174, 255, 196);
 }
 
 .light.check {

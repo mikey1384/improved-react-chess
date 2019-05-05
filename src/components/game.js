@@ -4,13 +4,14 @@ import FallenPieces from './FallenPieces.js';
 import initialiseChessBoard from '../helpers/board-initialiser.js';
 import {
   checkerPos,
-  getKingIndex,
+  getPieceIndex,
   getOpponentPlayerId,
   isGameOver,
   isPossibleAndLegal,
   kingWillBeCapturedBy,
   returnBoardAfterMove,
-  highlightPossiblePathsFromSrc
+  highlightPossiblePathsFromSrc,
+  getPlayerPieces
 } from '../helpers/model';
 
 export default function Game() {
@@ -50,7 +51,13 @@ export default function Game() {
         }}
       >
         <FallenPieces whiteFallenPieces={whiteFallenPieces} />
-        <Board squares={squares} onClick={handleClick} player={player} />
+        <Board
+          squares={squares}
+          turn={turn}
+          onClick={handleClick}
+          onCastling={handleCastling}
+          player={player}
+        />
         <div
           style={{
             display: 'flex',
@@ -65,6 +72,78 @@ export default function Game() {
       </div>
     </div>
   );
+
+  function handleCastling(direction) {
+    const opponent = getOpponentPlayerId(player);
+    const { playerPieces } = getPlayerPieces({
+      player: opponent,
+      squares
+    });
+    let kingPos = getPieceIndex({ player, squares, type: 'king' });
+    let rookPos = getPieceIndex({ player, squares, type: 'rook' });
+    let kingMidDest = -1;
+    let kingEndDest = -1;
+
+    if (turn === 'white') {
+      if (direction === 'right') {
+        kingMidDest = 61;
+        kingEndDest = 62;
+      } else {
+        kingMidDest = 59;
+        kingEndDest = 58;
+      }
+    } else {
+      if (direction === 'right') {
+        kingMidDest = 5;
+        kingEndDest = 6;
+      } else {
+        kingMidDest = 3;
+        kingEndDest = 2;
+      }
+    }
+    for (let piece of playerPieces) {
+      if (
+        isPossibleAndLegal({
+          src: piece.index,
+          dest: kingMidDest,
+          squares,
+          player: opponent
+        })
+      ) {
+        setSquares(squares =>
+          squares.map((square, index) => {
+            if (index === piece.index) {
+              return {
+                ...square,
+                state: 'danger'
+              };
+            }
+            return {
+              ...square,
+              state: square.state === 'danger' ? '' : square.state
+            };
+          })
+        );
+        setStatus(
+          `Castling not allowed because the king cannot pass through a square that is attacked by an enemy piece`
+        );
+        return;
+      }
+    }
+    const rookDest = kingMidDest;
+    const newSquares = returnBoardAfterMove({
+      squares: returnBoardAfterMove({
+        squares,
+        src: kingPos,
+        dest: kingEndDest,
+        player
+      }),
+      src: rookPos,
+      dest: rookDest,
+      player
+    });
+    handleMove({ myKingIndex: kingPos, newSquares });
+  }
 
   function handleClick(i) {
     if (selectedIndex === -1) {
@@ -84,8 +163,6 @@ export default function Game() {
           highlightPossiblePathsFromSrc({ player, squares, src: i })
         );
       } else {
-        const newWhiteFallenPieces = [...whiteFallenPieces];
-        const newBlackFallenPieces = [...blackFallenPieces];
         if (
           isPossibleAndLegal({ src: selectedIndex, dest: i, squares, player })
         ) {
@@ -95,76 +172,92 @@ export default function Game() {
             dest: i,
             player
           });
-          const myKingIndex = getKingIndex({ player, squares: newSquares });
-          const potentialCapturers = kingWillBeCapturedBy({
-            kingIndex: myKingIndex,
+          const myKingIndex = getPieceIndex({
             player,
-            squares: newSquares
+            squares: newSquares,
+            type: 'king'
           });
-          if (potentialCapturers.length > 0) {
-            setSquares(squares =>
-              squares.map((square, index) => {
-                if (potentialCapturers.indexOf(index) !== -1) {
-                  return {
-                    ...square,
-                    state: 'danger'
-                  };
-                }
-                return {
-                  ...square,
-                  state: square.state === 'danger' ? '' : square.state
-                };
-              })
-            );
-            setStatus('Your King will be captured if you make that move.');
-            return;
-          }
-          if (squares[i].player) {
-            squares[i].player === 1
-              ? newWhiteFallenPieces.push(squares[i])
-              : newBlackFallenPieces.push(squares[i]);
-          }
-          setSelectedIndex(-1);
-          const theirKingIndex = getKingIndex({
-            player: getOpponentPlayerId(player),
-            squares: newSquares
-          });
-          if (
-            checkerPos({
-              squares: newSquares,
-              kingIndex: theirKingIndex,
-              player
-            }).length !== 0
-          ) {
-            newSquares[theirKingIndex] = {
-              ...newSquares[theirKingIndex],
-              state: 'check'
-            };
-          }
-          setSquares(newSquares);
-          setWhiteFallenPieces(newWhiteFallenPieces);
-          setBlackFallenPieces(newBlackFallenPieces);
-          setStatus('');
-          const gameOver = isGameOver({
-            player: getOpponentPlayerId(player),
-            squares: newSquares
-          });
-          if (gameOver) {
-            if (gameOver === 'Checkmate') {
-              setSquares(squares =>
-                squares.map((square, index) =>
-                  index === theirKingIndex
-                    ? { ...square, state: 'checkmate' }
-                    : square
-                )
-              );
-            }
-            setGameOverMsg(gameOver);
-          }
-          setPlayer(getOpponentPlayerId(player));
-          setTurn(turn === 'white' ? 'black' : 'white');
+          handleMove({ myKingIndex, newSquares, dest: i });
         }
       }
     }
+  }
+
+  function handleMove({ myKingIndex, newSquares, dest }) {
+    const newWhiteFallenPieces = [...whiteFallenPieces];
+    const newBlackFallenPieces = [...blackFallenPieces];
+    const potentialCapturers = kingWillBeCapturedBy({
+      kingIndex: myKingIndex,
+      player,
+      squares: newSquares
+    });
+    if (potentialCapturers.length > 0) {
+      setSquares(squares =>
+        squares.map((square, index) => {
+          if (potentialCapturers.indexOf(index) !== -1) {
+            return {
+              ...square,
+              state: 'danger'
+            };
+          }
+          return {
+            ...square,
+            state: square.state === 'danger' ? '' : square.state
+          };
+        })
+      );
+      setStatus('Your King will be captured if you make that move.');
+      return;
+    }
+    if (dest) {
+      if (squares[dest].player) {
+        squares[dest].player === 1
+          ? newWhiteFallenPieces.push(squares[dest])
+          : newBlackFallenPieces.push(squares[dest]);
+      }
+    }
+    setSelectedIndex(-1);
+    const theirKingIndex = getPieceIndex({
+      player: getOpponentPlayerId(player),
+      squares: newSquares,
+      type: 'king'
+    });
+    if (
+      checkerPos({
+        squares: newSquares,
+        kingIndex: theirKingIndex,
+        player
+      }).length !== 0
+    ) {
+      newSquares[theirKingIndex] = {
+        ...newSquares[theirKingIndex],
+        state: 'check'
+      };
+    }
+    if (dest) {
+      newSquares[dest].moved = true;
+    }
+    setSquares(newSquares);
+    setWhiteFallenPieces(newWhiteFallenPieces);
+    setBlackFallenPieces(newBlackFallenPieces);
+    setStatus('');
+    const gameOver = isGameOver({
+      player: getOpponentPlayerId(player),
+      squares: newSquares
+    });
+    if (gameOver) {
+      if (gameOver === 'Checkmate') {
+        setSquares(squares =>
+          squares.map((square, index) =>
+            index === theirKingIndex
+              ? { ...square, state: 'checkmate' }
+              : square
+          )
+        );
+      }
+      setGameOverMsg(gameOver);
+    }
+    setPlayer(getOpponentPlayerId(player));
+    setTurn(turn === 'white' ? 'black' : 'white');
   }
 }
