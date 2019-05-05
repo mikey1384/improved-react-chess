@@ -1,19 +1,23 @@
-import React, { useState, Fragment } from 'react';
+import React, { Fragment } from 'react';
 import PropTypes from 'prop-types';
 import Square from './Square';
 import getPiece from '../helpers/piece';
 import { css } from 'emotion';
 
 Board.propTypes = {
+  blackCastled: PropTypes.object,
   status: PropTypes.string,
   onClick: PropTypes.func.isRequired,
   player: PropTypes.number.isRequired,
   squares: PropTypes.array.isRequired,
   turn: PropTypes.string.isRequired,
-  onCastling: PropTypes.func.isRequired
+  onCastling: PropTypes.func.isRequired,
+  whiteCastled: PropTypes.object
 };
 
 export default function Board({
+  blackCastled,
+  whiteCastled,
   status,
   onClick,
   squares,
@@ -21,14 +25,6 @@ export default function Board({
   onCastling,
   player
 }) {
-  const [blackCastled, setBlackCastled] = useState({
-    left: false,
-    right: false
-  });
-  const [whiteCastled, setWhiteCastled] = useState({
-    left: false,
-    right: false
-  });
   const board = [];
   for (let i = 0; i < 8; i++) {
     const squareRows = [];
@@ -110,7 +106,7 @@ export default function Board({
                 alignItems: 'center',
                 padding: '0 0.5rem 0 0.5rem'
               }}
-              onClick={() => handleCastlingButtonClick('left')}
+              onClick={() => onCastling('left')}
             >
               ←{' '}
               <img
@@ -147,7 +143,7 @@ export default function Board({
                 alignItems: 'center',
                 padding: '0 0.5rem 0 0.5rem'
               }}
-              onClick={() => handleCastlingButtonClick('right')}
+              onClick={() => onCastling('right')}
             >
               ←{' '}
               <img
@@ -185,7 +181,7 @@ export default function Board({
                 alignItems: 'center',
                 padding: '0 0.5rem 0 0.5rem'
               }}
-              onClick={() => handleCastlingButtonClick('left')}
+              onClick={() => onCastling('left')}
             >
               ←{' '}
               <img
@@ -222,7 +218,7 @@ export default function Board({
                 alignItems: 'center',
                 padding: '0 0.5rem 0 0.5rem'
               }}
-              onClick={() => handleCastlingButtonClick('right')}
+              onClick={() => onCastling('right')}
             >
               ←{' '}
               <img
@@ -240,15 +236,6 @@ export default function Board({
           )}
       </>
     );
-  }
-
-  function handleCastlingButtonClick(direction) {
-    if (turn === 'black') {
-      setBlackCastled(castled => ({ ...castled, [direction]: true }));
-    } else {
-      setWhiteCastled(castled => ({ ...castled, [direction]: true }));
-    }
-    onCastling(direction);
   }
 }
 

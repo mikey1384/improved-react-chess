@@ -23,6 +23,14 @@ export default function Game() {
   const [status, setStatus] = useState('');
   const [turn, setTurn] = useState('white');
   const [gameOverMsg, setGameOverMsg] = useState();
+  const [blackCastled, setBlackCastled] = useState({
+    left: false,
+    right: false
+  });
+  const [whiteCastled, setWhiteCastled] = useState({
+    left: false,
+    right: false
+  });
   useEffect(() => {
     const players = { white: 1, black: 2 };
     setSquares(squares =>
@@ -57,6 +65,8 @@ export default function Game() {
           onClick={handleClick}
           onCastling={handleCastling}
           player={player}
+          blackCastled={blackCastled}
+          whiteCastled={whiteCastled}
         />
         <div
           style={{
@@ -80,7 +90,7 @@ export default function Game() {
       squares
     });
     let kingPos = getPieceIndex({ player, squares, type: 'king' });
-    let rookPos = getPieceIndex({ player, squares, type: 'rook' });
+    let rookPos = -1;
     let kingMidDest = -1;
     let kingEndDest = -1;
 
@@ -88,17 +98,21 @@ export default function Game() {
       if (direction === 'right') {
         kingMidDest = 61;
         kingEndDest = 62;
+        rookPos = 63;
       } else {
         kingMidDest = 59;
         kingEndDest = 58;
+        rookPos = 56;
       }
     } else {
       if (direction === 'right') {
         kingMidDest = 5;
         kingEndDest = 6;
+        rookPos = 7;
       } else {
         kingMidDest = 3;
         kingEndDest = 2;
+        rookPos = 0;
       }
     }
     for (let piece of playerPieces) {
@@ -142,7 +156,13 @@ export default function Game() {
       dest: rookDest,
       player
     });
-    handleMove({ myKingIndex: kingPos, newSquares });
+    if (handleMove({ myKingIndex: kingEndDest, newSquares }) === 'success') {
+      if (turn === 'black') {
+        setBlackCastled(castled => ({ ...castled, [direction]: true }));
+      } else {
+        setWhiteCastled(castled => ({ ...castled, [direction]: true }));
+      }
+    }
   }
 
   function handleClick(i) {
@@ -259,5 +279,6 @@ export default function Game() {
     }
     setPlayer(getOpponentPlayerId(player));
     setTurn(turn === 'white' ? 'black' : 'white');
+    return 'success';
   }
 }
