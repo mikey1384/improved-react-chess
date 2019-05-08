@@ -252,6 +252,7 @@ export default function Game() {
           const attacking =
             player === 1 ? srcRow - destRow === 1 : destRow - srcRow === 1;
           const enPassanting =
+            !squares[dest].player &&
             enPassantTarget.player !== player &&
             attacking &&
             enPassantTarget.index % 8 === destColumn;
