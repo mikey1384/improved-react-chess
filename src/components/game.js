@@ -23,6 +23,7 @@ export default function Game() {
   const [status, setStatus] = useState('');
   const [turn, setTurn] = useState('white');
   const [gameOverMsg, setGameOverMsg] = useState();
+  const [enPassantTarget, setEnPassantTarget] = useState({});
   const [blackCastled, setBlackCastled] = useState({
     left: false,
     right: false
@@ -31,6 +32,7 @@ export default function Game() {
     left: false,
     right: false
   });
+
   useEffect(() => {
     const players = { white: 1, black: 2 };
     setSquares(squares =>
@@ -171,7 +173,12 @@ export default function Game() {
         return;
       }
       setSquares(squares =>
-        highlightPossiblePathsFromSrc({ player, squares, src: i })
+        highlightPossiblePathsFromSrc({
+          player,
+          squares,
+          src: i,
+          enPassantTarget
+        })
       );
       setStatus('');
       setSelectedIndex(i);
@@ -184,26 +191,33 @@ export default function Game() {
         );
       } else {
         if (
-          isPossibleAndLegal({ src: selectedIndex, dest: i, squares, player })
+          isPossibleAndLegal({
+            src: selectedIndex,
+            dest: i,
+            squares,
+            player,
+            enPassantTarget
+          })
         ) {
           const newSquares = returnBoardAfterMove({
             squares,
             src: selectedIndex,
             dest: i,
-            player
+            player,
+            enPassantTarget
           });
           const myKingIndex = getPieceIndex({
             player,
             squares: newSquares,
             type: 'king'
           });
-          handleMove({ myKingIndex, newSquares, dest: i });
+          handleMove({ myKingIndex, newSquares, dest: i, src: selectedIndex });
         }
       }
     }
   }
 
-  function handleMove({ myKingIndex, newSquares, dest }) {
+  function handleMove({ myKingIndex, newSquares, dest, src }) {
     const newWhiteFallenPieces = [...whiteFallenPieces];
     const newBlackFallenPieces = [...blackFallenPieces];
     const potentialCapturers = kingWillBeCapturedBy({
@@ -230,6 +244,24 @@ export default function Game() {
       return;
     }
     if (dest) {
+      if (squares[src].type === 'pawn') {
+        if (enPassantTarget && enPassantTarget.player) {
+          const srcRow = Math.floor(src / 8);
+          const destRow = Math.floor(dest / 8);
+          const destColumn = dest % 8;
+          const attacking =
+            player === 1 ? srcRow - destRow === 1 : destRow - srcRow === 1;
+          const enPassanting =
+            enPassantTarget.player !== player &&
+            attacking &&
+            enPassantTarget.index % 8 === destColumn;
+          if (enPassanting) {
+            enPassantTarget.player === 1
+              ? newWhiteFallenPieces.push(squares[enPassantTarget.index])
+              : newBlackFallenPieces.push(squares[enPassantTarget.index]);
+          }
+        }
+      }
       if (squares[dest].player) {
         squares[dest].player === 1
           ? newWhiteFallenPieces.push(squares[dest])
@@ -263,7 +295,8 @@ export default function Game() {
     setStatus('');
     const gameOver = isGameOver({
       player: getOpponentPlayerId(player),
-      squares: newSquares
+      squares: newSquares,
+      enPassantTarget
     });
     if (gameOver) {
       if (gameOver === 'Checkmate') {
@@ -277,6 +310,12 @@ export default function Game() {
       }
       setGameOverMsg(gameOver);
     }
+    const target =
+      newSquares[dest].type === 'pawn' &&
+      (dest === src + 16 || dest === src - 16)
+        ? { index: dest, player: newSquares[dest].player }
+        : {};
+    setEnPassantTarget(target);
     setPlayer(getOpponentPlayerId(player));
     setTurn(turn === 'white' ? 'black' : 'white');
     return 'success';

@@ -7,7 +7,11 @@ export function checkerPos({ squares, kingIndex, player }) {
       continue;
     }
     if (
-      getPiece(squares[i]).isMovePossible(i, kingIndex, true) &&
+      getPiece(squares[i]).isMovePossible({
+        src: i,
+        dest: kingIndex,
+        isDestEnemyOccupied: true
+      }) &&
       isMoveLegal({
         srcToDestPath: getPiece(squares[i]).getSrcToDestPath(i, kingIndex),
         squares
@@ -49,9 +53,15 @@ export function getPlayerPieces({ player, squares }) {
   return { kingIndex, playerPieces };
 }
 
-export function highlightPossiblePathsFromSrc({ player, squares, src }) {
+export function highlightPossiblePathsFromSrc({
+  player,
+  squares,
+  src,
+  enPassantTarget
+}) {
   return squares.map((square, index) =>
-    index === src || isPossibleAndLegal({ src, dest: index, squares, player })
+    index === src ||
+    isPossibleAndLegal({ src, dest: index, squares, player, enPassantTarget })
       ? {
           ...square,
           state:
@@ -69,7 +79,7 @@ export function highlightPossiblePathsFromSrc({ player, squares, src }) {
   );
 }
 
-export function isGameOver({ player, squares }) {
+export function isGameOver({ player, squares, enPassantTarget }) {
   const { kingIndex, playerPieces } = getPlayerPieces({ player, squares });
   let isChecked = false;
   const nextDest = [
@@ -100,7 +110,8 @@ export function isGameOver({ player, squares }) {
         src: kingIndex,
         dest,
         player,
-        squares
+        squares,
+        enPassantTarget
       })
   );
   if (possibleNextDest.length === 0 && kingPiece.state !== 'check') {
@@ -134,7 +145,8 @@ export function isGameOver({ player, squares }) {
             src: piece.index,
             dest: checkers[0],
             player,
-            squares
+            squares,
+            enPassantTarget
           })
         ) {
           return false;
@@ -157,7 +169,8 @@ export function isGameOver({ player, squares }) {
               src: piece.index,
               dest: square,
               player,
-              squares
+              squares,
+              enPassantTarget
             })
           ) {
             if (checkers.length === 1) return false;
@@ -184,7 +197,13 @@ export function isGameOver({ player, squares }) {
     for (let i = 0; i < squares.length; i++) {
       for (let piece of playerPieces) {
         if (
-          isPossibleAndLegal({ src: piece.index, dest: i, player, squares })
+          isPossibleAndLegal({
+            src: piece.index,
+            dest: i,
+            player,
+            squares,
+            enPassantTarget
+          })
         ) {
           const newSquares = returnBoardAfterMove({
             src: piece.index,
@@ -220,12 +239,23 @@ export function isMoveLegal({ srcToDestPath, ignore, include, squares }) {
   return true;
 }
 
-export function isPossibleAndLegal({ src, dest, player, squares }) {
+export function isPossibleAndLegal({
+  src,
+  dest,
+  player,
+  squares,
+  enPassantTarget
+}) {
   if (squares[dest].player === player) {
     return false;
   }
   return (
-    getPiece(squares[src]).isMovePossible(src, dest, !!squares[dest].player) &&
+    getPiece(squares[src]).isMovePossible({
+      src,
+      dest,
+      isDestEnemyOccupied: !!squares[dest].player,
+      enPassantTarget
+    }) &&
     isMoveLegal({
       srcToDestPath: getPiece(squares[src]).getSrcToDestPath(src, dest),
       squares
@@ -242,7 +272,23 @@ export function kingWillBeCapturedBy({ kingIndex, player, squares }) {
   return checkerPositions;
 }
 
-export function returnBoardAfterMove({ squares, src, dest, player }) {
+export function returnBoardAfterMove({
+  squares,
+  src,
+  dest,
+  player,
+  enPassantTarget
+}) {
+  const srcRow = Math.floor(src / 8);
+  const destRow = Math.floor(dest / 8);
+  const destColumn = dest % 8;
+  const attacking =
+    player === 1 ? srcRow - destRow === 1 : destRow - srcRow === 1;
+  const enPassanting =
+    enPassantTarget &&
+    enPassantTarget.player !== player &&
+    attacking &&
+    enPassantTarget.index % 8 === destColumn;
   const newSquares = squares.map((square, index) => {
     if (index === dest) {
       const firstRow = [0, 1, 2, 3, 4, 5, 6, 7];
@@ -263,6 +309,7 @@ export function returnBoardAfterMove({ squares, src, dest, player }) {
       };
     }
     if (index === src) return {};
+    if (enPassanting && index === enPassantTarget.index) return {};
     return {
       ...square,
       state: ''

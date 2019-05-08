@@ -15,47 +15,38 @@ export default function getPiece({ type, player }) {
               : 'https://upload.wikimedia.org/wikipedia/commons/c/c7/Chess_pdt45.svg'
           }')`
         },
-        isMovePossible(src, dest, isDestEnemyOccupied) {
+        isMovePossible({ src, dest, isDestEnemyOccupied, enPassantTarget }) {
           const srcRow = Math.floor(src / 8);
           const srcColumn = src % 8;
           const destRow = Math.floor(dest / 8);
           const destColumn = dest % 8;
-          if (player === 1) {
-            if (
-              (dest === src - 8 ||
-                (dest === src - 16 &&
-                  initialPawnPositions[1].indexOf(src) !== -1)) &&
-              !isDestEnemyOccupied
-            ) {
-              return true;
-            } else if (
-              isDestEnemyOccupied &&
-              srcRow - destRow === 1 &&
-              Math.abs(srcColumn - destColumn) === 1
-            ) {
-              return true;
-            }
+          const oneSquareModifier = player === 1 ? -8 : 8;
+          const twoSquaresModifier = player === 1 ? -16 : 16;
+          const destCrossable =
+            player === 1 ? srcRow - destRow === 1 : destRow - srcRow === 1;
+          let attackable = isDestEnemyOccupied && destCrossable;
+          const enPassantPossible =
+            enPassantTarget &&
+            enPassantTarget.player &&
+            enPassantTarget.player !== player &&
+            destCrossable &&
+            destColumn === enPassantTarget.index % 8 &&
+            srcRow === Math.floor(enPassantTarget.index / 8) &&
+            Math.abs(srcColumn - (enPassantTarget.index % 8)) === 1;
+          if (
+            (dest === src + oneSquareModifier ||
+              (dest === src + twoSquaresModifier &&
+                initialPawnPositions[player].indexOf(src) !== -1)) &&
+            !isDestEnemyOccupied
+          ) {
+            return true;
+          } else if (attackable && Math.abs(srcColumn - destColumn) === 1) {
+            return true;
+          } else if (enPassantPossible) {
+            return true;
           }
-          if (player === 2) {
-            if (
-              (dest === src + 8 ||
-                (dest === src + 16 &&
-                  initialPawnPositions[2].indexOf(src) !== -1)) &&
-              !isDestEnemyOccupied
-            ) {
-              return true;
-            } else if (
-              isDestEnemyOccupied &&
-              destRow - srcRow === 1 &&
-              Math.abs(srcColumn - destColumn) === 1
-            ) {
-              return true;
-            }
-          }
-
           return false;
         },
-
         getSrcToDestPath(src, dest) {
           const srcRow = Math.floor(src / 8);
           const destRow = Math.floor(dest / 8);
@@ -79,7 +70,7 @@ export default function getPiece({ type, player }) {
               : 'https://upload.wikimedia.org/wikipedia/commons/9/98/Chess_bdt45.svg'
           }')`
         },
-        isMovePossible(src, dest) {
+        isMovePossible({ src, dest }) {
           const srcRow = Math.floor(src / 8);
           const srcColumn = src % 8;
           const destRow = Math.floor(dest / 8);
@@ -124,7 +115,7 @@ export default function getPiece({ type, player }) {
               : 'https://upload.wikimedia.org/wikipedia/commons/e/ef/Chess_ndt45.svg'
           }')`
         },
-        isMovePossible(src, dest) {
+        isMovePossible({ src, dest }) {
           const srcRow = Math.floor(src / 8);
           const srcColumn = src % 8;
           const destRow = Math.floor(dest / 8);
@@ -154,14 +145,14 @@ export default function getPiece({ type, player }) {
               : 'https://upload.wikimedia.org/wikipedia/commons/f/ff/Chess_rdt45.svg'
           }')`
         },
-        isMovePossible(src, dest) {
+        isMovePossible({ src, dest }) {
           const srcRow = Math.floor(src / 8);
           const srcColumn = src % 8;
           const destRow = Math.floor(dest / 8);
           const destColumn = dest % 8;
           return srcRow === destRow || srcColumn === destColumn;
         },
-        getSrcToDestPath(src, dest) {
+        getSrcToDestPath({ src, dest }) {
           let path = [];
           let pathStart;
           let pathEnd;
@@ -197,7 +188,7 @@ export default function getPiece({ type, player }) {
               : 'https://upload.wikimedia.org/wikipedia/commons/4/47/Chess_qdt45.svg'
           }')`
         },
-        isMovePossible(src, dest) {
+        isMovePossible({ src, dest }) {
           const srcRow = Math.floor(src / 8);
           const srcColumn = src % 8;
           const destRow = Math.floor(dest / 8);
@@ -250,7 +241,7 @@ export default function getPiece({ type, player }) {
               : 'https://upload.wikimedia.org/wikipedia/commons/f/f0/Chess_kdt45.svg'
           }')`
         },
-        isMovePossible(src, dest) {
+        isMovePossible({ src, dest }) {
           const srcRow = Math.floor(src / 8);
           const srcColumn = src % 8;
           const destRow = Math.floor(dest / 8);
