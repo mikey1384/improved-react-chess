@@ -150,9 +150,10 @@ export default function getPiece({ type, player }) {
           const srcColumn = src % 8;
           const destRow = Math.floor(dest / 8);
           const destColumn = dest % 8;
+
           return srcRow === destRow || srcColumn === destColumn;
         },
-        getSrcToDestPath({ src, dest }) {
+        getSrcToDestPath(src, dest) {
           let path = [];
           let pathStart;
           let pathEnd;
