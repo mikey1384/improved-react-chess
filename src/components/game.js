@@ -311,12 +311,14 @@ export default function Game() {
       }
       setGameOverMsg(gameOver);
     }
-    const target =
-      newSquares[dest].type === 'pawn' &&
-      (dest === src + 16 || dest === src - 16)
-        ? { index: dest, player: newSquares[dest].player }
-        : {};
-    setEnPassantTarget(target);
+    if (dest) {
+      const target =
+        newSquares[dest].type === 'pawn' &&
+        (dest === src + 16 || dest === src - 16)
+          ? { index: dest, player: newSquares[dest].player }
+          : {};
+      setEnPassantTarget(target);
+    }
     setPlayer(getOpponentPlayerId(player));
     setTurn(turn === 'white' ? 'black' : 'white');
     return 'success';
